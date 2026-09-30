@@ -836,8 +836,8 @@ test('extracted v26-v31 registration preserves the 64-tool catalog', () => {
   registerV26V31Tools({ registerTool: (name:string) => { names.push(name); } } as any, {} as any);
   assert.equal(names.length, 64);
   for (const required of [
-    'design_system_tokens_v26','feature_spec_compile_v27','evolution_map_v28',
-    'product_capability_map_v29','experiment_hypothesis_v30','workspace_bootstrap_v31','install_status_v31'
+    'design_system_tokens_v26','feature_spec_v27','feature_dependency_map_v28',
+    'journey_map_v29','experiment_plan_v30','workspace_bootstrap_v31','install_status_v31'
   ]) assert.ok(names.includes(required), required);
 });
 
