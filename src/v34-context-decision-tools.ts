@@ -149,7 +149,7 @@ export function registerV34ContextDecisionTools(
         try { bundle = JSON.parse(await fs.readFile(await kromStatePath(smartContextFile), "utf8")); } catch {}
         if (!bundle) return result(JSON.stringify({ status: "NO_CONTEXT", nextStep: "Run smart_context_build first." }, null, 2));
         const graph = (await readCodeIntelligenceGraph()) || await buildCodeIntelligenceGraph();
-        const selected = new Set(bundle.selected.map(x => x.file));
+        const selected = new Set<string>((bundle.selected as any[]).map((x: any) => String(x.file)));
         const missingNeighbors = new Set<string>();
         for (const file of selected) {
           const node = graph.nodes[file];
