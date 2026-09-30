@@ -28,6 +28,7 @@ import { registerV3CoreTools } from '../src/v3-core-tools.js';
 import { registerV31BrowserTools } from '../src/v31-browser-tools.js';
 import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
+import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -541,4 +542,20 @@ test('extracted v3.3 code intelligence catalog remains stable', () => {
     codeIntelFile: 'code-intelligence.json'
   });
   assert.deepEqual(names, ['code_intelligence_scan','impact_analysis','symbol_intelligence','regression_scope']);
+});
+
+test('extracted v3.4 context and decision catalog remains stable', () => {
+  const names:string[] = [];
+  registerV34ContextDecisionTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot: process.cwd(),
+    smartContextFile: 'smart-context.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    buildSmartContext: async () => ({ selected: [], omittedHighRisk: [], generatedAt: '', estimatedChars: 0, tokenBudgetChars: 0, changedFiles: [], memorySummary: {}, query: '' }),
+    kromStatePath: async (file:string) => file,
+    decideExecutionStrategy: () => ({}),
+    readCodeIntelligenceGraph: async () => null,
+    buildCodeIntelligenceGraph: async () => ({ nodes: {}, unresolvedImports: [] })
+  });
+  assert.deepEqual(names, ['smart_context_build','context_file_pack','decision_engine','context_gap_check']);
 });
