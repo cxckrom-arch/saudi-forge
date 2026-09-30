@@ -299,3 +299,26 @@ test('provider and secret APIs expose release version while preserving schema ve
   assert.equal(saved.version, APP_VERSION);
   assert.equal(saved.schemaVersion, '34.5.0');
 });
+
+test('AI route preview cannot be downgraded by nested adaptive module version', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-route-preview-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  const service = createAiControlService({
+    stateDir: path.join(root, '.krom'),
+    kromHome: root,
+    projectRoot: root,
+    port: 3001,
+    routingFile: path.join(root, 'routing.json'),
+    profiles: async () => ({ profiles: [] }),
+    reliability: async () => ({ providers: [] }),
+    readProfiles: async () => [],
+    saveProfiles: async () => {},
+    selectModel: async () => ({}),
+    routingPolicy: async () => ({}),
+    routeExplain: async () => ({ version: '33.0.0', status: 'ROUTED', selected: { providerId: 'mock' } })
+  });
+  const preview = await service.routePreview({ task: 'fix code' });
+  assert.equal(preview.version, APP_VERSION);
+  assert.equal(preview.schemaVersion, '33.0.0');
+  assert.equal(preview.status, 'ROUTED');
+});
