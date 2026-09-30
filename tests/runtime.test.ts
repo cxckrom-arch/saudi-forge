@@ -563,6 +563,95 @@ test('developer chat circuit breaker skips repeatedly failing providers', async 
   assert.equal(circuit.failures, 2);
 });
 
+test('developer chat recovers an open provider through a half-open health probe', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-dev-chat-recovery-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  const originalFetch = globalThis.fetch;
+  let clock = 1_000_000;
+  let primaryHealthy = false;
+  let primaryCalls = 0;
+  let backupCalls = 0;
+
+  globalThis.fetch = (async (url:any) => {
+    const target = String(url);
+    if (target.includes('primary.example')) {
+      primaryCalls++;
+      if (!primaryHealthy) {
+        return new Response(JSON.stringify({ error: { message: 'temporary outage' } }), {
+          status: 503,
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      return new Response(JSON.stringify({
+        choices: [{ message: { content: 'primary recovered' } }]
+      }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    backupCalls++;
+    return new Response(JSON.stringify({
+      choices: [{ message: { content: 'backup ok' } }]
+    }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    });
+  }) as any;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const profiles:any[] = [
+    { id: 'primary', name: 'Primary', kind: 'openai-compatible', baseUrl: 'https://primary.example/v1', enabled: true, priority: 1, timeoutMs: 1000, defaultModel: 'model-a' },
+    { id: 'backup', name: 'Backup', kind: 'openai-compatible', baseUrl: 'https://backup.example/v1', enabled: true, priority: 2, timeoutMs: 1000, defaultModel: 'model-b' }
+  ];
+
+  const service = createDeveloperPlatformService({
+    kromHome: root,
+    projectRoot: root,
+    previewFile: path.join(root, 'preview.json'),
+    v310RuntimeDoctor: async () => ({ status: 'PASS', blockers: [] }),
+    v320AuthHeaders: () => ({}),
+    v320NormalizeBase: (v:string) => v,
+    v320ProviderHealth: async ({providerId}:any) => ({ results: [{ providerId, ok: providerId === 'primary' && primaryHealthy }] }),
+    v320ReadProfiles: async () => profiles,
+    v330SmartRoute: async () => ({
+      selected: { providerId: 'primary', provider: 'Primary', model: 'model-a' },
+      candidates: [
+        { providerId: 'primary', provider: 'Primary', model: 'model-a', healthy: true, score: 95 },
+        { providerId: 'backup', provider: 'Backup', model: 'model-b', healthy: true, score: 88 }
+      ]
+    }),
+    v340ControlStatus: async () => ({ providers: profiles }),
+    v60Diagnostics: async () => ({ status: 'PASS', count: 0, diagnostics: [], checks: [] }),
+    v60WriteJson: async (_file:string, state:any) => state,
+    v80ReadTextFile: async () => '',
+    v80WorkbenchState: async () => ({ preview: { url: null }, editor: { activeFile: null } }),
+    v90DependencyDoctor: async () => ({ concerns: [] }),
+    v90Health: async () => ({ score: 100, grade: 'A' }),
+    executeProgram: async () => ({ success: true, stdout: '', stderr: '' }),
+    now: () => clock
+  });
+
+  await service.askModel({ message: 'request one' });
+  await service.askModel({ message: 'request two' });
+  assert.equal(primaryCalls, 2);
+
+  const open:any = await service.platformStatus();
+  assert.equal(open.providerCircuits.find((x:any) => x.providerId === 'primary')?.phase, 'OPEN');
+
+  clock += 60_001;
+  primaryHealthy = true;
+
+  const recovered:any = await service.askModel({ message: 'request after cooldown' });
+  assert.equal(recovered.providerId, 'primary');
+  assert.equal(recovered.answer, 'primary recovered');
+  assert.deepEqual(recovered.attempts.map((x:any) => x.status), ['RECOVERED','PASS']);
+  assert.equal(primaryCalls, 3);
+  assert.equal(backupCalls, 2);
+
+  const status:any = await service.platformStatus();
+  assert.equal(status.providerCircuits.some((x:any) => x.providerId === 'primary'), false);
+});
+
 test('extracted core project registration preserves the 14-tool catalog', () => {
   const names:string[] = [];
   const server:any = { registerTool: (name:string) => { names.push(name); } };
