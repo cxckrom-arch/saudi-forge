@@ -365,10 +365,10 @@ test('developer platform renderer uses supplied release identity and escapes dyn
     state: { providers: [{ enabled: true, name: '<Mock>' }], preview: { url: '' }, chatMessages: [] },
     projectRoot: 'C:\\SAFE<&>',
     appName: 'KSA-FORGE-DEV',
-    appDisplayVersion: 'v47.0'
+    appDisplayVersion: 'v48.0'
   });
   assert.match(html, /KSA-FORGE-DEV/);
-  assert.match(html, /v47\.0/);
+  assert.match(html, /v48\.0/);
   assert.ok(!html.includes('<Mock>'));
   assert.ok(html.includes('&lt;Mock&gt;'));
   assert.ok(html.includes('C:\\SAFE&lt;&amp;&gt;'));
