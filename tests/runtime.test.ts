@@ -491,7 +491,9 @@ test('extracted prompt studio registration preserves the eight-tool catalog', ()
     sanitizePromptName: (name:string) => name,
     safePath: (p:string) => p,
     readPackageJson: async () => ({}),
-    detectPackageManager: async () => 'npm'
+    detectPackageManager: async () => 'npm',
+    exists: async () => false,
+    backupFile: async () => null
   });
   assert.deepEqual(names, [
     'build_prompt','improve_prompt','prompt_from_project','design_ui_prompt',
@@ -522,7 +524,9 @@ test('extracted v3 core registration preserves orchestration and gate catalog', 
     writeProjectMemory: async () => {},
     traceabilityFromManifest: () => ({}),
     readExecutionManifest: async () => null,
-    runNpmScriptIfPresent: async () => ({ available: false, success: null })
+    runNpmScriptIfPresent: async () => ({ available: false, success: null }),
+    recordCommandEvidence: async () => {},
+    visualReviewScore: () => ({ score: 100, missing: [] })
   });
   assert.deepEqual(names, [
     'master_orchestrator','project_memory','requirement_traceability',
@@ -536,7 +540,10 @@ test('extracted v3.1 browser and v3.2 repair catalogs remain stable', () => {
     result: (text:string) => ({ content: [{ type: 'text', text }] }),
     errorResult: (error:unknown) => ({ isError: true, error }),
     runLiveBrowserVision: async () => ({}),
-    readLatestLiveBrowserReport: async () => null
+    readLatestLiveBrowserReport: async () => null,
+    recordCommandEvidence: async () => {},
+    runNpmScriptIfPresent: async () => ({ available: false, success: null }),
+    readExecutionManifest: async () => null
   });
   assert.deepEqual(browserNames, ['live_browser_vision','live_browser_report','release_gate_v31']);
 
@@ -548,7 +555,8 @@ test('extracted v3.1 browser and v3.2 repair catalogs remain stable', () => {
     repairFingerprint: () => '00000000',
     readRepairState: async () => null,
     writeRepairState: async () => {},
-    locateLikelyFiles: async () => []
+    locateLikelyFiles: async () => [],
+    readExecutionManifest: async () => null
   });
   assert.deepEqual(repairNames, ['autonomous_repair_begin','autonomous_repair_verify','autonomous_repair_status','repair_source_locator']);
 });
@@ -835,7 +843,7 @@ test('extracted v26-v31 registration preserves the 64-tool catalog', () => {
 
 test('server composition root contains no inline MCP tool registrations', async () => {
   const source = await fs.readFile(path.resolve('server.ts'), 'utf8');
-  assert.equal((source.match(/server\\.registerTool\\(/g) || []).length, 0);
+  assert.equal((source.match(/server\.registerTool\(/g) || []).length, 0);
 });
 
 test('extracted prompt design service preserves generation and scoring behavior', () => {
