@@ -1,8 +1,0 @@
-{
-  "route": "http://127.0.0.1:54035/ide",
-  "probe": "crafted filename click",
-  "observed": {
-    "xssCanary": "1"
-  },
-  "effect": "DOM marker only; no secrets read or transmitted"
-}
