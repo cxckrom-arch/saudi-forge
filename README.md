@@ -80,6 +80,9 @@ The V37 modularization has started with:
 - `src/adaptive-model-service.ts` — benchmark history, reliability scoring, smart routing, fallback chains, and route explainability
 - `src/secret-manager.ts` — local provider secret loading, persistence, validation, provider credential actions, and secret-file isolation
 - `src/ai-control-service.ts` — AI control status, provider enable/priority control, quick model selection, route preview, and runtime audit
+- `src/developer-platform-service.ts` — v35 developer chat, routed provider calls, project scan, preview state, and platform status
+- `src/developer-platform-ui.ts` — isolated developer-platform HTML renderer
+- `src/model-control-tools.ts` — v32–v35 MCP registration layer for provider/model/AI/developer tools
 - `src/network-policy.ts` — loopback-first host/origin policy
 - `src/release-info.ts` — centralized release identity
 - `src/tool-runtime.ts` — bounded automation runner and persisted execution evidence
