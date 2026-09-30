@@ -51,6 +51,7 @@ import { registerV8WorkbenchTools } from './src/v8-workbench-tools.js';
 import { registerV9EngineeringOpsTools } from './src/v9-engineering-ops-tools.js';
 import { registerV10SoftwareFactoryTools } from './src/v10-software-factory-tools.js';
 import { registerV11ReliabilityTools } from './src/v11-reliability-tools.js';
+import { registerCapabilityExpansionTools } from './src/capability-expansion-tools.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -5193,50 +5194,22 @@ const server = new McpServer({
     v110ProductionReadiness
   });
 
-// ===== v12.0 MEGA-100 CAPABILITY TOOLS =====
-  for (const cap of V120_CAPABILITIES) {
-    server.registerTool(
-      `${cap.id}_v12`,
-      {title:`${cap.title} v12`,description:cap.description,inputSchema:z.object({scope:z.string().optional(),writeReport:z.boolean().default(true)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-      async({scope,writeReport})=>{try{return result(JSON.stringify(await v120RunCapability(cap,scope,writeReport),null,2));}catch(error){return errorResult(error);}}
-    );
-  }
-  server.registerTool("mega_100_status_v12",{title:"Mega 100 Status v12",description:"Show readiness and report coverage for the 100-capability v12 expansion.",inputSchema:z.object({}),annotations:{readOnlyHint:true,openWorldHint:false}},async()=>{try{return result(JSON.stringify(await v120MegaStatus(),null,2));}catch(error){return errorResult(error);}});
-  server.registerTool("mega_100_audit_v12",{title:"Mega 100 Audit v12",description:"Run the complete 100-capability static engineering audit, or selected capability categories.",inputSchema:z.object({categories:z.array(z.string()).default([])}),annotations:{readOnlyHint:false,openWorldHint:false}},async({categories})=>{try{return result(JSON.stringify(await v120RunMegaAudit(categories),null,2));}catch(error){return errorResult(error);}});
-  // ===== END v12.0 TOOLS =====
+  registerCapabilityExpansionTools(server, {
+    result,
+    errorResult,
+    V120_CAPABILITIES,
+    V130_CAPABILITIES,
+    V140_CAPABILITIES,
+    V150_CAPABILITIES,
+    v120RunCapability,
+    v120MegaStatus,
+    v120RunMegaAudit,
+    v130RunCapability,
+    v140RunCapability,
+    v150RunCapability
+  });
 
-  // ===== v13.0 EXACT-500 TOOL REGISTRATION =====
-  for (const cap of V130_CAPABILITIES) {
-    server.registerTool(
-      `${cap.id}_v13`,
-      {title:`${cap.title} v13`,description:cap.description,inputSchema:z.object({scope:z.string().optional(),writeReport:z.boolean().default(true)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-      async({scope,writeReport})=>{try{return result(JSON.stringify(await v130RunCapability(cap,scope,writeReport),null,2));}catch(error){return errorResult(error);}}
-    );
-  }
-  // ===== END v13.0 TOOL REGISTRATION =====
-
-  // ===== v14.0 EXACT-1000 TOOL REGISTRATION =====
-  for (const cap of V140_CAPABILITIES) {
-    server.registerTool(
-      `${cap.id}_v14`,
-      {title:`${cap.title} v14`,description:cap.description,inputSchema:z.object({scope:z.string().optional(),writeReport:z.boolean().default(true)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-      async({scope,writeReport})=>{try{return result(JSON.stringify(await v140RunCapability(cap,scope,writeReport),null,2));}catch(error){return errorResult(error);}}
-    );
-  }
-  // ===== END v14.0 TOOL REGISTRATION =====
-
-  // ===== v15.0 EXACT-5000 TOOL REGISTRATION =====
-  for (const cap of V150_CAPABILITIES) {
-    server.registerTool(
-      `${cap.id}_v15`,
-      {title:`${cap.title} v15`,description:cap.description,inputSchema:z.object({scope:z.string().optional(),writeReport:z.boolean().default(true)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-      async({scope,writeReport})=>{try{return result(JSON.stringify(await v150RunCapability(cap,scope,writeReport),null,2));}catch(error){return errorResult(error);}}
-    );
-  }
-  // ===== END v15.0 TOOL REGISTRATION =====
-
-
-  // ===== v16.0 INTELLIGENT TOOL ROUTER REGISTRATION =====
+// ===== v16.0 INTELLIGENT TOOL ROUTER REGISTRATION =====
   server.registerTool("tool_search_v16",{title:"Tool Search v16",description:"Search and rank the 5000-tool catalog for a task.",inputSchema:z.object({query:z.string(),limit:z.number().int().min(1).max(50).default(12),domain:z.string().optional(),maxRisk:z.enum(["LOW","MEDIUM","HIGH"]).default("HIGH")}),annotations:{readOnlyHint:true,openWorldHint:false}},async({query,limit,domain,maxRisk})=>{try{return result(JSON.stringify(await v160Search(query,limit,domain,maxRisk),null,2));}catch(e){return errorResult(e);}});
   server.registerTool("intelligent_tool_router_v16",{title:"Intelligent Tool Router v16",description:"Select a small evidence-oriented tool set for a task instead of exposing thousands of choices.",inputSchema:z.object({task:z.string(),maxTools:z.number().int().min(1).max(12).default(6),allowHighRisk:z.boolean().default(false)}),annotations:{readOnlyHint:true,openWorldHint:false}},async({task,maxTools,allowHighRisk})=>{try{return result(JSON.stringify(await v160Route(task,maxTools,allowHighRisk),null,2));}catch(e){return errorResult(e);}});
   server.registerTool("capability_graph_v16",{title:"Capability Graph v16",description:"Create a recommended dependency-aware capability sequence for a task.",inputSchema:z.object({task:z.string()}),annotations:{readOnlyHint:true,openWorldHint:false}},async({task})=>{try{return result(JSON.stringify(await v160CapabilityGraph(task),null,2));}catch(e){return errorResult(e);}});
