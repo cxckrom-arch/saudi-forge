@@ -20,6 +20,7 @@ import { registerAiControlRoutes } from './src/ai-control-routes.js';
 import { registerAutomationHttpRoutes } from './src/automation-http-routes.js';
 import { registerDeveloperRoutes } from './src/developer-routes.js';
 import { registerWorkspaceRoutes } from './src/workspace-routes.js';
+import { createDiagnosticsService } from './src/diagnostics-service.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -2028,26 +2029,12 @@ async function v60WorkspaceIndex(limit=3500){
   const out={at:new Date().toISOString(),count:rows.length,files:rows,hotspots}; await v60WriteJson(V60_WORKSPACE_FILE,out); return out;
 }
 
-function v60ParseDiagnostics(text:string){
-  const out:any[]=[]; const lines=text.split(/\r?\n/);
-  const re=/^(.+?)\((\d+),(\d+)\):\s*(error|warning)\s*([A-Z]*\d+)?:?\s*(.*)$/i;
-  const eslint=/^(.+?):(\d+):(\d+)\s+(.+?)\s+(error|warning)\s+([\w@\-/]+)?$/i;
-  for(const line of lines){
-    let m=line.match(re); if(m){out.push({file:normalizeRel(m[1]),line:Number(m[2]),column:Number(m[3]),severity:m[4].toLowerCase(),code:m[5]||null,message:m[6]});continue;}
-    m=line.match(eslint); if(m){out.push({file:normalizeRel(m[1]),line:Number(m[2]),column:Number(m[3]),message:m[4],severity:m[5].toLowerCase(),code:m[6]||null});}
-  }
-  return out.slice(0,1000);
-}
-
-async function v60Diagnostics(){
-  const checks:any[]=[]; const tc=await runPackageScript(['typecheck','check:types','types']); checks.push({name:'typecheck',...tc});
-  const lint=await runPackageScript(['lint']); checks.push({name:'lint',...lint});
-  const diagnostics:any[]=[];
-  for(const c of checks){const blob=[c.stdout,c.stderr,c.message].filter(Boolean).join('\n'); for(const d of v60ParseDiagnostics(blob)) diagnostics.push({...d,source:c.name});}
-  const byFile:any={}; for(const d of diagnostics){(byFile[d.file]??=[]).push(d);}
-  const payload={at:new Date().toISOString(),status:checks.some(c=>c.available!==false && c.success===false)?'ERRORS':diagnostics.some(d=>d.severity==='error')?'ERRORS':diagnostics.length?'WARNINGS':checks.every(c=>c.available===false)?'SKIPPED':'CLEAN',checks:checks.map(c=>({name:c.name,status:c.status??(c.success?'PASS':'FAIL'),available:c.available??true,success:c.success??null})),count:diagnostics.length,byFile,diagnostics};
-  await v60WriteJson(V60_DIAGNOSTICS_FILE,payload); return payload;
-}
+const { diagnostics: v60Diagnostics } = createDiagnosticsService({
+  runPackageScript,
+  writeJson: v60WriteJson,
+  diagnosticsFile: V60_DIAGNOSTICS_FILE,
+  normalizeRel
+});
 
 async function v60GitFileDiff(rel:string){
   const safe=safePath(rel); if(!(await exists(safe))) throw new Error(`File not found: ${rel}`);
