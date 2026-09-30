@@ -31,6 +31,7 @@ import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
+import { createPredictiveEngineeringService } from '../src/predictive-engineering-service.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
@@ -942,4 +943,35 @@ test('council service persists sessions and resolves evidence-weighted consensus
   assert.equal(consensus.status,'CONSENSUS');
   await service.writeState({...state,status:'CONSENSUS',consensus});
   assert.equal((await service.readState())?.status,'CONSENSUS');
+});
+
+test('predictive engineering service builds scoped simulation and enforces checkpoint preflight', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-predictive-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const service=createPredictiveEngineeringService({
+    kromStatePath: async (file:string)=>path.join(root,file),
+    readCodeIntelligenceGraph: async ()=>({
+      nodes:{
+        'src/a.ts':{file:'src/a.ts',imports:['src/b.ts'],importedBy:['src/c.ts'],routes:['/a'],kind:'source'},
+        'src/b.ts':{file:'src/b.ts',imports:[],importedBy:['src/a.ts'],routes:[],kind:'source'},
+        'src/c.ts':{file:'src/c.ts',imports:['src/a.ts'],importedBy:[],routes:['/c'],kind:'source'}
+      },
+      unresolvedImports:[]
+    }),
+    buildCodeIntelligenceGraph: async ()=>({nodes:{},unresolvedImports:[]}),
+    buildSmartContext: async ()=>({selected:[{file:'src/a.ts'}]}),
+    dependencyReach: (_g:any,starts:string[],direction:string)=>({all:direction==='dependencies'?['src/b.ts']:['src/c.ts']}),
+    riskForImpact: ()=>({score:20,level:'LOW',reasons:[]}),
+    normalizeRel: (v:string)=>v.replace(/\\/g,'/'),
+    readAutopilotState: async ()=>null,
+    decideExecutionStrategy: ()=>({mode:'FOCUSED_CHANGE',risk:'LOW',agents:['Developer']})
+  });
+  const sim=await service.buildChangeSimulation('change a',['src/a.ts'],2);
+  assert.deepEqual(sim.targetFiles,['src/a.ts']);
+  assert.ok(sim.affectedFiles.includes('src/b.ts'));
+  assert.ok(sim.affectedFiles.includes('src/c.ts'));
+  assert.equal(sim.risk.level,'LOW');
+  const preflight=await service.evaluatePreflight(sim,true);
+  assert.equal(preflight.status,'BLOCKED');
+  assert.ok(preflight.blockers.some((x:string)=>x.includes('checkpoint')));
 });
