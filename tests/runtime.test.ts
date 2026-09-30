@@ -8,6 +8,7 @@ import * as z from 'zod/v4';
 import { ToolRuntime, outcome } from '../src/tool-runtime.js';
 import { chatMessages, completionUrl } from '../src/chat-context.js';
 import { resolveCommand } from '../src/process-command.js';
+import { createProjectContext } from '../src/project-context.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -88,4 +89,27 @@ test('npm resolver starts a real executable without a shell',async()=>{
  const command=await resolveCommand('npm',['--version']);
  const {stdout}=await promisify(execFile)(command.program,command.args,{windowsHide:true,timeout:15000});
  assert.match(stdout.trim(),/^\d+\.\d+\.\d+/);
+});
+
+
+test('project context blocks traversal and skips local/generated directories', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-project-context-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  await fs.writeFile(path.join(root,'package.json'),JSON.stringify({name:'fixture',packageManager:'npm@10.0.0'}));
+  await fs.mkdir(path.join(root,'src'),{recursive:true});
+  await fs.writeFile(path.join(root,'src','index.ts'),'export {};');
+  await fs.mkdir(path.join(root,'node_modules','pkg'),{recursive:true});
+  await fs.writeFile(path.join(root,'node_modules','pkg','index.js'),'ignored');
+  await fs.mkdir(path.join(root,'.krom-secrets'),{recursive:true});
+  await fs.writeFile(path.join(root,'.krom-secrets','provider.env'),'ignored');
+
+  const project=createProjectContext(root);
+  assert.throws(()=>project.safePath('../outside'),/outside KROM_PROJECT_ROOT/);
+  assert.equal(project.safePath('src'),path.join(root,'src'));
+  assert.equal(await project.detectPackageManager(),'npm');
+
+  const files=(await project.walkProject()).map(file=>path.relative(root,file).replaceAll('\\','/'));
+  assert.ok(files.includes('src/index.ts'));
+  assert.ok(!files.some(file=>file.startsWith('node_modules/')));
+  assert.ok(!files.some(file=>file.startsWith('.krom-secrets/')));
 });
