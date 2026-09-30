@@ -45,7 +45,7 @@ export function registerV33CodeIntelligenceTools(
     async ({ maxFiles }) => {
       try {
         const graph = await buildCodeIntelligenceGraph(maxFiles);
-        const hotspots = Object.values(graph.nodes)
+        const hotspots = (Object.values(graph.nodes) as any[])
           .map(n => ({ file: n.file, dependents: n.importedBy.length, dependencies: n.imports.length, routes: n.routes, kind: n.kind }))
           .sort((a,b) => b.dependents - a.dependents)
           .slice(0, 20);
@@ -72,7 +72,7 @@ export function registerV33CodeIntelligenceTools(
         const graph = refreshGraph ? await buildCodeIntelligenceGraph() : (await readCodeIntelligenceGraph()) || await buildCodeIntelligenceGraph();
         const normalized: string[] = (files as string[]).map(normalizeRel).filter((f: string) => Boolean(graph.nodes[f]));
         if (symbol) {
-          for (const n of Object.values(graph.nodes)) {
+          for (const n of (Object.values(graph.nodes) as any[])) {
             if (n.symbols.includes(symbol) || n.exports.includes(symbol)) normalized.push(n.file);
           }
         }
@@ -120,7 +120,7 @@ export function registerV33CodeIntelligenceTools(
     async ({ symbol, refreshGraph }) => {
       try {
         const graph = refreshGraph ? await buildCodeIntelligenceGraph() : (await readCodeIntelligenceGraph()) || await buildCodeIntelligenceGraph();
-        const matches = Object.values(graph.nodes).filter(n => n.symbols.includes(symbol) || n.exports.includes(symbol));
+        const matches = (Object.values(graph.nodes) as any[]).filter(n => n.symbols.includes(symbol) || n.exports.includes(symbol));
         return result(JSON.stringify({ symbol, declarations: matches.map(n => ({ file: n.file, exported: n.exports.includes(symbol), kind: n.kind, directDependents: n.importedBy, routes: n.routes })), count: matches.length }, null, 2));
       } catch (error) { return errorResult(error); }
     }
@@ -144,7 +144,7 @@ export function registerV33CodeIntelligenceTools(
         const reach = dependencyReach(graph, starts, "dependents", depth);
         const impacted = [...new Set([...starts, ...reach.all])];
         const routes = [...new Set(impacted.flatMap(f => graph.nodes[f]?.routes || []))];
-        const likelyTests = Object.values(graph.nodes).filter(n => n.kind === "test" && (n.imports.some(i => impacted.includes(i)) || impacted.some(i => n.file.includes(path.posix.basename(i).replace(/\.[^.]+$/, ""))))).map(n => n.file);
+        const likelyTests = (Object.values(graph.nodes) as any[]).filter(n => n.kind === "test" && (n.imports.some(i => impacted.includes(i)) || impacted.some(i => n.file.includes(path.posix.basename(i).replace(/\.[^.]+$/, ""))))).map(n => n.file);
         return result(JSON.stringify({ status: "OK", changedFiles: changed, graphMatchedChangedFiles: starts, impactedFiles: impacted, impactedRoutes: routes, likelyTests, recommendedOrder: ["targeted tests", "typecheck", "impacted browser flows", "build", "release gate"], warning: starts.length < changed.length ? "Some changed files are not represented in the current source graph (assets/generated/non-code files may be expected)." : null }, null, 2));
       } catch (error) { return errorResult(error); }
     }
