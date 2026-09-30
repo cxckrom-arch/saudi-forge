@@ -37,6 +37,7 @@ import { registerV26V31Tools } from '../src/v26-v31-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { createAutopilotService } from '../src/autopilot-service.js';
+import { createCouncilService } from '../src/council-service.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
 import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { registerV4ProductTools } from '../src/v4-product-tools.js';
@@ -924,4 +925,21 @@ test('autopilot service persists state, checkpoints files, and enforces phase ru
   assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'before');
   assert.equal(service.nextPhase({...state,iteration:2},40,['x']),'blocked');
   assert.equal(service.nextPhase(state,95,[]),'release');
+});
+
+test('council service persists sessions and resolves evidence-weighted consensus', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-council-service-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const service=createCouncilService({
+    kromStatePath:async(file:string)=>{const p=path.join(root,file);await fs.mkdir(path.dirname(p),{recursive:true});return p;},
+    taskTypeOf:()=> 'general',
+    clampConfidence:(v:number)=>Math.max(0,Math.min(100,v))
+  });
+  const state:any=await service.createSession('Refactor safely');
+  assert.ok(state.requiredAgents.includes('architect'));
+  state.opinions=state.requiredAgents.map((agent:string)=>({agent,recommendation:'Proceed with narrow patch',risks:[],evidence:['test'],confidence:90,submittedAt:new Date().toISOString()}));
+  const consensus:any=service.resolveConsensus(state);
+  assert.equal(consensus.status,'CONSENSUS');
+  await service.writeState({...state,status:'CONSENSUS',consensus});
+  assert.equal((await service.readState())?.status,'CONSENSUS');
 });
