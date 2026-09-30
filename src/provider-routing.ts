@@ -68,7 +68,7 @@ export function createProviderRouting(options: {
     const route = classifyTask(input.task);
     const configured = policy.routes?.[route];
 
-    let candidate =
+    let candidate: ProviderProfile | undefined =
       profiles.find((p) => p.enabled && p.id === configured?.providerId) ||
       profiles.filter((p) => p.enabled).sort((a, b) => a.priority - b.priority)[0];
 
