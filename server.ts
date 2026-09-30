@@ -49,6 +49,7 @@ import { registerV6IdeCoreTools } from './src/v6-ide-core-tools.js';
 import { registerV7VisualIdeTools } from './src/v7-visual-ide-tools.js';
 import { registerV8WorkbenchTools } from './src/v8-workbench-tools.js';
 import { registerV9EngineeringOpsTools } from './src/v9-engineering-ops-tools.js';
+import { registerV10SoftwareFactoryTools } from './src/v10-software-factory-tools.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -5141,75 +5142,31 @@ const server = new McpServer({
     v90ReleaseCenter
   });
 
-// ===== v10.0 Autonomous Software Factory =====
-  server.registerTool(
-    "spec_to_code_pipeline_v10",
-    {title:"Spec-to-Code Pipeline v10",description:"Convert a product goal into a gated engineering specification and execution phases before implementation.",inputSchema:z.object({goal:z.string().min(3),constraints:z.array(z.string()).default([])}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({goal,constraints})=>{try{return result(JSON.stringify({status:"OK",spec:await v100SpecPipeline(goal,constraints),file:`.krom/${V100_SPEC_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
+  registerV10SoftwareFactoryTools(server, {
+    specFile: V100_SPEC_FILE,
+    archFile: V100_ARCH_FILE,
+    migrationFile: V100_MIGRATION_FILE,
+    e2eFile: V100_E2E_FILE,
+    visualRegressionFile: V100_VISUAL_REG_FILE,
+    releaseNotesFile: V100_RELEASE_NOTES_FILE,
+    cicdFile: V100_CICD_FILE,
+    qualityBudgetFile: V100_QUALITY_BUDGET_FILE,
+    result,
+    errorResult,
+    v100SpecPipeline,
+    v100ArchitectureGraph,
+    v100MigrationPlanner,
+    v100E2EScenarios,
+    v100VisualRegression,
+    v100ReleaseNotes,
+    v100CicdOrchestrator,
+    v100QualityBudget,
+    v100TelemetryRecord,
+    v100Blueprint,
+    v100FactoryStatus
+  });
 
-  server.registerTool(
-    "architecture_graph_v10",
-    {title:"Architecture Graph v10",description:"Build a project architecture graph from source modules, imports, routes/pages/components and API surfaces.",inputSchema:z.object({}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async()=>{try{return result(JSON.stringify({status:"OK",graph:await v100ArchitectureGraph(),file:`.krom/${V100_ARCH_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "migration_planner_v10",
-    {title:"Migration Planner v10",description:"Prepare a safe additive database/application migration plan with RLS, rollback and verification requirements.",inputSchema:z.object({target:z.string().min(2)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({target})=>{try{return result(JSON.stringify({status:"OK",plan:await v100MigrationPlanner(target),file:`.krom/${V100_MIGRATION_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "e2e_scenario_generator_v10",
-    {title:"E2E Scenario Generator v10",description:"Generate acceptance-focused end-to-end scenarios for happy path, validation, permissions/errors and responsive behavior.",inputSchema:z.object({feature:z.string().min(2)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({feature})=>{try{return result(JSON.stringify({status:"OK",...(await v100E2EScenarios(feature)),file:`.krom/${V100_E2E_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "visual_regression_manager_v10",
-    {title:"Visual Regression Manager v10",description:"Manage visual regression policy, routes and viewport baselines for browser verification.",inputSchema:z.object({routes:z.array(z.string()).default([])}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({routes})=>{try{return result(JSON.stringify({status:"OK",...(await v100VisualRegression(routes)),file:`.krom/${V100_VISUAL_REG_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "release_notes_generator_v10",
-    {title:"Release Notes Generator v10",description:"Generate evidence-oriented release notes from the latest Git change set without inventing changes.",inputSchema:z.object({version:z.string().min(1)}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({version})=>{try{return result(JSON.stringify({status:"OK",notes:await v100ReleaseNotes(version),file:`.krom/${V100_RELEASE_NOTES_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "cicd_orchestrator_v10",
-    {title:"CI/CD Orchestrator v10",description:"Inspect project scripts and deployment signals and produce a gated CI/CD execution model.",inputSchema:z.object({}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async()=>{try{return result(JSON.stringify({status:"OK",pipeline:await v100CicdOrchestrator(),file:`.krom/${V100_CICD_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "quality_budget_v10",
-    {title:"Quality Budget v10",description:"Define measurable engineering quality budgets for compiler, lint, tests, security, visual quality, bundle size, accessibility and product completeness.",inputSchema:z.object({maxBundleKb:z.number().int().positive().optional(),minAccessibilityScore:z.number().min(0).max(100).optional(),minProductCompleteness:z.number().min(0).max(100).optional()}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async(input)=>{try{return result(JSON.stringify({status:"OK",budget:await v100QualityBudget(input),file:`.krom/${V100_QUALITY_BUDGET_FILE}`},null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "engineering_telemetry_v10",
-    {title:"Engineering Telemetry v10",description:"Record non-secret engineering metrics such as task duration, test counts, model cost estimates or token usage supplied by the caller.",inputSchema:z.object({kind:z.string(),metric:z.string(),value:z.number(),meta:z.record(z.string(),z.any()).default({})}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({kind,metric,value,meta})=>{try{return result(JSON.stringify(await v100TelemetryRecord(kind,metric,value,meta),null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "project_blueprints_v10",
-    {title:"Project Blueprints v10",description:"Create, list or read reusable local project blueprints with required artifacts and quality gates.",inputSchema:z.object({action:z.enum(["list","create","get"]).default("list"),id:z.string().optional(),description:z.string().optional()}),annotations:{readOnlyHint:false,openWorldHint:false}},
-    async({action,id,description})=>{try{return result(JSON.stringify(await v100Blueprint(action,id,description),null,2));}catch(error){return errorResult(error);}}
-  );
-
-  server.registerTool(
-    "software_factory_status_v10",
-    {title:"Software Factory Status v10",description:"Summarize whether the v10 specification, architecture, E2E, CI/CD and quality-budget artifacts are ready for autonomous execution.",inputSchema:z.object({}),annotations:{readOnlyHint:true,openWorldHint:false}},
-    async()=>{try{return result(JSON.stringify(await v100FactoryStatus(),null,2));}catch(error){return errorResult(error);}}
-  );
-
-
-  // ===== v11.0 Autonomous Delivery & Reliability Platform =====
+// ===== v11.0 Autonomous Delivery & Reliability Platform =====
   server.registerTool("observability_center_v11",{title:"Observability Center v11",description:"Inventory observability instrumentation and define safe production telemetry requirements.",inputSchema:z.object({}),annotations:{readOnlyHint:false,openWorldHint:false}},async()=>{try{return result(JSON.stringify({status:"OK",...(await v110Observability()),file:`.krom/${V110_OBSERVABILITY_FILE}`},null,2));}catch(error){return errorResult(error);}});
   server.registerTool("failure_replay_v11",{title:"Failure Replay v11",description:"Build a deterministic, privacy-safe replay plan for an incident or failed user flow.",inputSchema:z.object({incidentId:z.string().optional(),symptoms:z.array(z.string()).default([]),evidence:z.array(z.string()).default([])}),annotations:{readOnlyHint:false,openWorldHint:false}},async(input)=>{try{return result(JSON.stringify({status:"OK",...(await v110FailureReplay(input)),file:`.krom/${V110_REPLAY_FILE}`},null,2));}catch(error){return errorResult(error);}});
   server.registerTool("resilience_lab_v11",{title:"Resilience Lab v11",description:"Plan bounded local/staging resilience experiments for timeouts, network loss, dependency failure and restart recovery.",inputSchema:z.object({target:z.string().min(2)}),annotations:{readOnlyHint:false,destructiveHint:true,openWorldHint:false}},async({target})=>{try{return result(JSON.stringify({status:"OK",...(await v110Resilience(target)),file:`.krom/${V110_RESILIENCE_FILE}`},null,2));}catch(error){return errorResult(error);}});
