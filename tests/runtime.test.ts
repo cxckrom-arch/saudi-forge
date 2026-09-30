@@ -13,6 +13,7 @@ import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { createProviderStore } from '../src/provider-store.js';
 import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
+import { createSecretManager } from '../src/secret-manager.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -178,4 +179,27 @@ test('adaptive routing classification and scoring stay deterministic',()=>{
   assert.equal(latencyScore(7000),15);
   assert.ok(taskAffinity('gemini','planning')>taskAffinity('gpt4all','planning'));
   assert.equal(taskAffinity('custom','general'),70);
+});
+
+
+test('secret manager validates names and strips line breaks',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-secret-manager-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const env:any={};
+  const manager=createSecretManager({
+    kromHome:root,
+    readProfiles:async()=>[],
+    providerHealth:async()=>({results:[]}),
+    selectModel:async()=>({}),
+    providerControl:async()=>({}),
+    env
+  });
+
+  await assert.rejects(()=>manager.persistSecret('bad-key','12345678'),/Invalid secret environment variable name/);
+  await assert.rejects(()=>manager.persistSecret('GOOD_KEY','short'),/too short/);
+  const saved=await manager.persistSecret('GOOD_KEY','abc12345\r\n');
+  assert.equal(saved.configured,true);
+  assert.equal(env.GOOD_KEY,'abc12345');
+  const text=await fs.readFile(manager.secretsFile(),'utf8');
+  assert.equal(text,'GOOD_KEY=abc12345\n');
 });
