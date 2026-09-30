@@ -1,20 +1,13 @@
+# Dependencies
+node_modules/
 
 # Local secrets
 .krom-secrets/
-*.env
-.env*
-
-# Secrets
-.krom-secrets/
 .env
 .env.*
 *.env
 
-# Secrets
-.krom-secrets/
-.env
-.env.*
-*.env
-.krom-secrets/
-.krom-secrets/
-node_modules/
+# Local runtime and generated state
+.krom-backups/
+.krom/automation/
+reports/full-audit/
