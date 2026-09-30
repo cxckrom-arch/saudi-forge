@@ -13,7 +13,7 @@ import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { createProviderStore } from '../src/provider-store.js';
 import { createProviderService } from '../src/provider-service.js';
 import { createProviderReliabilityLedger } from '../src/provider-reliability-ledger.js';
-import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
+import { createAdaptiveModelService, latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
 import { createSecretManager } from '../src/secret-manager.js';
 import { createAiControlService } from '../src/ai-control-service.js';
@@ -265,6 +265,42 @@ test('provider reliability ledger persists bounded events and computes honest me
   assert.equal(persisted.eventCount, 6);
   assert.equal(persisted.providers.find((x:any) => x.providerId === 'primary').requests, 2);
   assert.equal((await reopened.recent(2)).length, 2);
+});
+
+test('smart route uses persisted reliability without letting tiny samples dominate', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-smart-route-history-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const profiles:any[] = [
+    { id: 'stable', name: 'Stable', kind: 'openai-compatible', baseUrl: 'https://stable.example/v1', enabled: true, priority: 20, timeoutMs: 1000, defaultModel: 'stable-model' },
+    { id: 'flaky', name: 'Flaky', kind: 'openai-compatible', baseUrl: 'https://flaky.example/v1', enabled: true, priority: 1, timeoutMs: 1000, defaultModel: 'flaky-model' }
+  ];
+
+  const service = createAdaptiveModelService({
+    stateDir: path.join(root, 'state'),
+    historyFile: path.join(root, 'state', 'benchmark-history.json'),
+    readProfiles: async () => profiles,
+    fetchJson: async () => ({ ok: true, status: 200, data: { data: [{ id: 'model' }] } }),
+    modelsUrl: (profile:any) => profile.baseUrl + '/models',
+    extractModels: () => ['model'],
+    classifyTask: () => 'coding',
+    reliabilitySummary: async () => ({
+      providers: [
+        { providerId: 'stable', requests: 20, successRatePct: 100, avgLatencyMs: 250 },
+        { providerId: 'flaky', requests: 20, successRatePct: 20, avgLatencyMs: 5000 }
+      ]
+    })
+  });
+
+  const routed:any = await service.smartRoute({ task: 'fix TypeScript bug', maxCandidates: 2 });
+  assert.equal(routed.status, 'ROUTED');
+  assert.equal(routed.selected.providerId, 'stable');
+  const stable = routed.candidates.find((x:any) => x.providerId === 'stable');
+  const flaky = routed.candidates.find((x:any) => x.providerId === 'flaky');
+  assert.equal(stable.historicalRequests, 20);
+  assert.equal(stable.historicalSuccessRatePct, 100);
+  assert.ok(stable.historicalScore > flaky.historicalScore);
+  assert.ok(stable.score > flaky.score);
 });
 
 test('secret manager validates names and strips line breaks',async t=>{
