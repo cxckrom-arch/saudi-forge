@@ -11,6 +11,7 @@ import { promisify } from "node:util";
 import { ToolRuntime, automationInput, outcome } from './src/tool-runtime.js';
 import { resolveCommand } from './src/process-command.js';
 import { chatMessages, completionUrl } from './src/chat-context.js';
+import { MAX_FILE_SIZE, createProjectContext } from './src/project-context.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -19,44 +20,6 @@ const KROM_HOME = path.resolve(process.env.KROM_HOME || DEFAULT_KROM_HOME);
 const PROJECT_ROOT = path.resolve(process.env.KROM_PROJECT_ROOT || KROM_HOME);
 await v342LoadSecretEnv();
 const toolRuntime = new ToolRuntime(path.join(PROJECT_ROOT,".krom","automation"));
-
-const MAX_FILE_SIZE = 1024 * 1024;
-
-const IGNORED_DIRS = new Set([
-  "node_modules",
-  ".git",
-  "dist",
-  "build",
-  ".next",
-  ".nuxt",
-  "coverage",
-  ".turbo",
-  ".cache",
-  ".krom-backups",
-  "release",
-  ".krom-secrets"
-]);
-
-const TEXT_EXTENSIONS = new Set([
-  ".ts", ".tsx", ".js", ".jsx",
-  ".mjs", ".cjs",
-  ".json",
-  ".html", ".css", ".scss", ".sass", ".less",
-  ".md", ".txt",
-  ".py",
-  ".java",
-  ".cs",
-  ".go",
-  ".rs",
-  ".php",
-  ".vue",
-  ".svelte",
-  ".sql",
-  ".yaml", ".yml",
-  ".toml",
-  ".xml",
-  ".env.example"
-]);
 
 function result(text: string) {
   return {
@@ -84,168 +47,15 @@ function errorResult(error: unknown) {
   };
 }
 
-function safePath(input = ".") {
-  const resolved = path.resolve(PROJECT_ROOT, input);
-
-  if (
-    resolved !== PROJECT_ROOT &&
-    !resolved.startsWith(PROJECT_ROOT + path.sep)
-  ) {
-    throw new Error(
-      `Access outside KROM_PROJECT_ROOT is blocked: ${input}`
-    );
-  }
-
-  return resolved;
-}
-
-async function exists(target: string) {
-  try {
-    await fs.access(target);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function backupFile(filePath: string) {
-  if (!(await exists(filePath))) {
-    return null;
-  }
-
-  const relative = path.relative(PROJECT_ROOT, filePath);
-
-  const stamp = new Date()
-    .toISOString()
-    .replace(/[:.]/g, "-");
-
-  const backupPath = path.join(
-    PROJECT_ROOT,
-    ".krom-backups",
-    stamp,
-    relative
-  );
-
-  await fs.mkdir(path.dirname(backupPath), {
-    recursive: true
-  });
-
-  await fs.copyFile(filePath, backupPath);
-
-  return backupPath;
-}
-
-function isTextFile(filePath: string) {
-  const base = path.basename(filePath).toLowerCase();
-
-  if (
-    base === "dockerfile" ||
-    base === "makefile" ||
-    base === ".gitignore" ||
-    base === ".npmrc"
-  ) {
-    return true;
-  }
-
-  return TEXT_EXTENSIONS.has(
-    path.extname(filePath).toLowerCase()
-  );
-}
-
-async function walkProject(
-  directory = PROJECT_ROOT,
-  output: string[] = [],
-  limit = 4000
-): Promise<string[]> {
-  if (output.length >= limit) {
-    return output;
-  }
-
-  const entries = await fs.readdir(directory, {
-    withFileTypes: true
-  });
-
-  for (const entry of entries) {
-    if (output.length >= limit) break;
-
-    if (entry.isSymbolicLink()) {
-      continue;
-    }
-
-    if (
-      entry.isDirectory() &&
-      IGNORED_DIRS.has(entry.name)
-    ) {
-      continue;
-    }
-
-    const full = path.join(directory, entry.name);
-
-    if (entry.isDirectory()) {
-      await walkProject(full, output, limit);
-    } else {
-      output.push(full);
-    }
-  }
-
-  return output;
-}
-
-async function readPackageJson(): Promise<any | null> {
-  const file = path.join(PROJECT_ROOT, "package.json");
-
-  try {
-    return JSON.parse(
-      await fs.readFile(file, "utf8")
-    );
-  } catch {
-    return null;
-  }
-}
-
-async function detectPackageManager() {
-  const pkg = await readPackageJson();
-
-  if (pkg?.packageManager) {
-    const name = String(pkg.packageManager)
-      .split("@")[0];
-
-    if (["npm", "pnpm", "yarn", "bun"].includes(name)) {
-      return name;
-    }
-  }
-
-  if (await exists(path.join(PROJECT_ROOT, "pnpm-lock.yaml"))) {
-    return "pnpm";
-  }
-
-  if (await exists(path.join(PROJECT_ROOT, "yarn.lock"))) {
-    return "yarn";
-  }
-
-  if (
-    await exists(path.join(PROJECT_ROOT, "bun.lockb")) ||
-    await exists(path.join(PROJECT_ROOT, "bun.lock"))
-  ) {
-    return "bun";
-  }
-
-  return "npm";
-}
-
-function windowsExecutable(program: string) {
-  if (process.platform !== "win32") {
-    return program;
-  }
-
-  if (
-    ["npm", "npx", "pnpm", "yarn", "bun"].includes(program)
-  ) {
-    return `${program}.cmd`;
-  }
-
-  return program;
-}
+const {
+  safePath,
+  exists,
+  backupFile,
+  isTextFile,
+  walkProject,
+  readPackageJson,
+  detectPackageManager
+} = createProjectContext(PROJECT_ROOT);
 
 async function executeProgram(
   program: string,
