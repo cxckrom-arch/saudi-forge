@@ -22,6 +22,7 @@ import { registerModelControlTools } from '../src/model-control-tools.js';
 import { createDeveloperPlatformService } from '../src/developer-platform-service.js';
 import { registerCoreProjectTools } from '../src/core-project-tools.js';
 import { registerPrecisionExecutionTools } from '../src/precision-execution-tools.js';
+import { registerPromptStudioTools } from '../src/prompt-studio-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -440,5 +441,29 @@ test('extracted precision execution registration preserves the four-tool catalog
   });
   assert.deepEqual(names, [
     'start_precise_execution','update_execution_requirement','execution_status','execution_audit'
+  ]);
+});
+
+test('extracted prompt studio registration preserves the eight-tool catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerPromptStudioTools(server, {
+    projectRoot: process.cwd(),
+    promptLibraryDir: '.krom-prompts',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    generatePrompt: () => '',
+    scorePrompt: () => ({ score: 0, checks: [] }),
+    uiDesignDirectorBlock: () => '',
+    designTokenPreset: () => ({}),
+    scoreUIDesignText: () => ({ score: 0, checks: [], missing: [] }),
+    sanitizePromptName: (name:string) => name,
+    safePath: (p:string) => p,
+    readPackageJson: async () => ({}),
+    detectPackageManager: async () => 'npm'
+  });
+  assert.deepEqual(names, [
+    'build_prompt','improve_prompt','prompt_from_project','design_ui_prompt',
+    'generate_design_system','ui_design_quality_check','prompt_quality_check','prompt_library'
   ]);
 });
