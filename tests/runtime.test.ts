@@ -9,6 +9,7 @@ import { ToolRuntime, outcome } from '../src/tool-runtime.js';
 import { chatMessages, completionUrl } from '../src/chat-context.js';
 import { resolveCommand } from '../src/process-command.js';
 import { createProjectContext } from '../src/project-context.js';
+import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -112,4 +113,16 @@ test('project context blocks traversal and skips local/generated directories', a
   assert.ok(files.includes('src/index.ts'));
   assert.ok(!files.some(file=>file.startsWith('node_modules/')));
   assert.ok(!files.some(file=>file.startsWith('.krom-secrets/')));
+});
+
+
+test('network policy remains loopback-only unless an explicit public host is allowlisted',()=>{
+ const local=createNetworkPolicy();
+ assert.equal(local.host,LOOPBACK_HOST);
+ assert.deepEqual(local.allowedHosts,['127.0.0.1','localhost','[::1]']);
+ assert.deepEqual(local.allowedOrigins,local.allowedHosts);
+ const extended=createNetworkPolicy('forge.example.test');
+ assert.ok(extended.allowedHosts.includes('forge.example.test'));
+ assert.ok(extended.allowedOrigins.includes('forge.example.test'));
+ assert.equal(extended.host,'127.0.0.1');
 });
