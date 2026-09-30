@@ -32,7 +32,6 @@ const PORT = Number(process.env.PORT || 3001);
 const DEFAULT_KROM_HOME = process.platform === "win32" ? "C:\\KSA-FORGE" : process.cwd();
 const KROM_HOME = path.resolve(process.env.KROM_HOME || DEFAULT_KROM_HOME);
 const PROJECT_ROOT = path.resolve(process.env.KROM_PROJECT_ROOT || KROM_HOME);
-await v342LoadSecretEnv();
 const toolRuntime = new ToolRuntime(path.join(PROJECT_ROOT,".krom","automation"));
 
 function result(text: string) {
@@ -4678,6 +4677,7 @@ const v342SetCredential = v342SecretManager.setCredential;
 const v342ToggleProvider = v342SecretManager.toggleProvider;
 const v342TestProvider = v342SecretManager.testProvider;
 const v342SetDefault = v342SecretManager.setDefault;
+await v342LoadSecretEnv();
 // ===== END v34.2 PROVIDER MANAGEMENT =====
 
 // ===== v34.0 AI CONTROL CENTER & UNIFIED RUNTIME CONSOLE =====
