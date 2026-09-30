@@ -10,7 +10,7 @@ export function registerAutomationTools(
   result: ResultFactory,
   errorResult: ErrorFactory
 ) {
-  const registerSet = (version: "v48" | "v47" | "v46" | "v45" | "v44" | "v43" | "v42" | "v41" | "v40" | "v39" | "v38" | "v37" | "v36") => {
+  const registerSet = (version: "v49" | "v48" | "v47" | "v46" | "v45" | "v44" | "v43" | "v42" | "v41" | "v40" | "v39" | "v38" | "v37" | "v36") => {
     server.registerTool(`connected_tools_${version}`, {
       description: "List tools bound to the local automation runner with their actual schemas.",
       inputSchema: z.object({})
@@ -55,6 +55,7 @@ export function registerAutomationTools(
     });
   };
 
+  registerSet("v49");
   registerSet("v48");
   registerSet("v47");
   registerSet("v46");
