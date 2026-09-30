@@ -3662,7 +3662,9 @@ const server = new McpServer({
     sanitizePromptName,
     safePath,
     readPackageJson,
-    detectPackageManager
+    detectPackageManager,
+    exists,
+    backupFile
   });
 
   registerVisualDesignerTools(server, {
@@ -3680,14 +3682,19 @@ const server = new McpServer({
     writeProjectMemory,
     traceabilityFromManifest,
     readExecutionManifest,
-    runNpmScriptIfPresent
+    runNpmScriptIfPresent,
+    recordCommandEvidence,
+    visualReviewScore
   });
 
   registerV31BrowserTools(server, {
     result,
     errorResult,
     runLiveBrowserVision,
-    readLatestLiveBrowserReport
+    readLatestLiveBrowserReport,
+    recordCommandEvidence,
+    runNpmScriptIfPresent,
+    readExecutionManifest
   });
 
   registerV32RepairTools(server, {
@@ -3697,7 +3704,8 @@ const server = new McpServer({
     repairFingerprint,
     readRepairState,
     writeRepairState,
-    locateLikelyFiles
+    locateLikelyFiles,
+    readExecutionManifest
   });
 
   registerV33CodeIntelligenceTools(server, {
