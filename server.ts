@@ -8489,7 +8489,6 @@ registerAiControlRoutes(app, {
 });
 
 app.get('/ide/tools',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(await fs.readFile(new URL('./public/tools.html',import.meta.url),'utf8')));
-app.get('/ide/tools',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(await fs.readFile(new URL('./public/tools.html',import.meta.url),'utf8')));
 registerAutomationHttpRoutes(app, toolRuntime);
 app.addHook('onClose',async()=>{toolRuntime.stopScheduler();await catalogServer.close();});
 await app.listen({
