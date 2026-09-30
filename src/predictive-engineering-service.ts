@@ -185,7 +185,7 @@ function buildTaskGraph(task: string, strategy: any): any {
   const db = strategy.agents.includes("Database/Security");
   const deploy = strategy.agents.includes("DevOps");
   const broad = strategy.mode === "MULTI_PHASE_BUILD";
-  const nodes: anyNode[] = [];
+  const nodes: any[] = [];
   const push=(title:string, objective:string, agent:string, dependsOn:string[], verification:string[])=>{
     const id=`T${String(nodes.length+1).padStart(3,"0")}`;
     nodes.push({id,title,objective,agent,dependsOn,verification,status:dependsOn.length?"pending":"ready"});
