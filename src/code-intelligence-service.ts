@@ -162,12 +162,12 @@ async function buildCodeIntelligenceGraph(maxFiles = 3000): Promise<CodeIntelGra
       symbols: Object.values(nodes).reduce((n, x) => n + x.symbols.length, 0)
     }
   };
-  await fs.writeFile(await kromStatePath(CODE_INTEL_FILE), JSON.stringify(graph, null, 2), "utf8");
+  await fs.writeFile(await kromStatePath(codeIntelFile), JSON.stringify(graph, null, 2), "utf8");
   return graph;
 }
 
 async function readCodeIntelligenceGraph(): Promise<CodeIntelGraph | null> {
-  try { return JSON.parse(await fs.readFile(await kromStatePath(CODE_INTEL_FILE), "utf8")); } catch { return null; }
+  try { return JSON.parse(await fs.readFile(await kromStatePath(codeIntelFile), "utf8")); } catch { return null; }
 }
 
 function dependencyReach(graph: CodeIntelGraph, starts: string[], direction: "dependents" | "dependencies", depth: number) {
