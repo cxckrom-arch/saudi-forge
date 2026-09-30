@@ -14,6 +14,8 @@ export function registerV3CoreTools(
     traceabilityFromManifest: (manifest: any) => any;
     readExecutionManifest: () => Promise<any>;
     runNpmScriptIfPresent: (...args: any[]) => Promise<any>;
+    recordCommandEvidence: (...args: any[]) => Promise<any>;
+    visualReviewScore: (...args: any[]) => any;
   }
 ) {
   const {
@@ -24,7 +26,9 @@ export function registerV3CoreTools(
     writeProjectMemory,
     traceabilityFromManifest,
     readExecutionManifest,
-    runNpmScriptIfPresent
+    runNpmScriptIfPresent,
+    recordCommandEvidence,
+    visualReviewScore
   } = deps;
 
   // =========================================================
