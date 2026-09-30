@@ -24,6 +24,7 @@ import { createProviderStore, type ProviderKind as V320ProviderKind, type Provid
 import { createProviderService } from './src/provider-service.js';
 import { createProviderRouting, classifyTask } from './src/provider-routing.js';
 import { createAdaptiveModelService } from './src/adaptive-model-service.js';
+import { createProviderReliabilityLedger } from './src/provider-reliability-ledger.js';
 import { createSecretManager } from './src/secret-manager.js';
 import { createAiControlService } from './src/ai-control-service.js';
 import { renderDeveloperPlatformHtml } from './src/developer-platform-ui.js';
@@ -3456,6 +3457,9 @@ const v320Status = v320ProviderRouting.status;
 // ===== v33.0 ADAPTIVE MULTI-MODEL INTELLIGENCE =====
 const V330_STATE_DIR = path.join(KROM_HOME, ".krom", "v33-model-intelligence");
 const V330_HISTORY_FILE = path.join(V330_STATE_DIR, "benchmark-history.json");
+const v330ReliabilityLedger = createProviderReliabilityLedger({
+  directory: path.join(KROM_HOME, ".krom", "v35-developer-platform")
+});
 const v330AdaptiveModel = createAdaptiveModelService({
   stateDir: V330_STATE_DIR,
   historyFile: V330_HISTORY_FILE,
@@ -3463,7 +3467,8 @@ const v330AdaptiveModel = createAdaptiveModelService({
   fetchJson: v320FetchJson,
   modelsUrl: v320ModelsUrl,
   extractModels: v320ExtractModels,
-  classifyTask: v320TaskRoute
+  classifyTask: v320TaskRoute,
+  reliabilitySummary: () => v330ReliabilityLedger.summary()
 });
 const v330Write = v330AdaptiveModel.write;
 const v330ReadHistory = v330AdaptiveModel.readHistory;
