@@ -33,6 +33,7 @@ import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-too
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
+import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -644,4 +645,20 @@ test('extracted v3.8 council catalog remains stable', () => {
     kromStatePath: async (file:string) => file
   });
   assert.deepEqual(names, ['engineering_council_convene','council_submit_opinion','execution_consensus','council_conflict_resolver','engineering_council_status']);
+});
+
+test('extracted v3.9 predictive engineering catalog remains stable', () => {
+  const names:string[] = [];
+  registerV39PredictiveTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    preflightHistoryFile: 'preflight-history.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    buildChangeSimulation: async () => ({}),
+    readChangeSimulation: async () => null,
+    forecastChangeRisk: () => ({}),
+    evaluatePreflight: async () => ({ status: 'PASS' }),
+    appendPreflightHistory: async () => {},
+    kromStatePath: async (file:string) => file
+  });
+  assert.deepEqual(names, ['change_simulation','risk_forecast','preflight_gate','change_plan','preflight_status']);
 });
