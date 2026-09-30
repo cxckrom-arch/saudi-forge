@@ -55,34 +55,156 @@ async function v350AskModel(input:{message:string;activeFile?:string|null;prefer
   v350ChatBusy=true;
   try{return await v350AskModelImpl(input);}finally{v350ChatBusy=false;}
 }
+async function v350CallProvider(profile:any, model:string, messagesForModel:any[]){
+  const started=Date.now();
+  let answer=''; let httpStatus=0;
+  if(profile.kind==='ollama'){
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),Math.max(15000,profile.timeoutMs||30000));
+    try{
+      const r=await fetch(`${v320NormalizeBase(profile.baseUrl)}/api/chat`,{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({model,messages:messagesForModel,stream:false}),
+        signal:ctrl.signal
+      });
+      httpStatus=r.status;
+      const d:any=await r.json();
+      if(!r.ok) throw new Error(d?.error||`Ollama HTTP ${r.status}`);
+      answer=String(d?.message?.content||d?.response||'').trim();
+    } finally { clearTimeout(timer); }
+  } else {
+    const url=completionUrl(profile.baseUrl,profile.kind);
+    const headers={...v320AuthHeaders(profile),'content-type':'application/json'};
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),Math.max(15000,profile.timeoutMs||30000));
+    try{
+      const r=await fetch(url,{
+        method:'POST',
+        headers,
+        body:JSON.stringify({model,messages:messagesForModel,temperature:0.2}),
+        signal:ctrl.signal
+      });
+      httpStatus=r.status;
+      const text=await r.text();
+      let d:any={};
+      try{ d=JSON.parse(text); } catch { d={error:text.slice(0,500)}; }
+      if(!r.ok) throw new Error(d?.error?.message||d?.error||`Provider HTTP ${r.status}`);
+      answer=v350ContentFromOpenAI(d);
+    } finally { clearTimeout(timer); }
+  }
+  if(!answer) throw new Error('The provider returned an empty response.');
+  return {answer,httpStatus,latencyMs:Date.now()-started};
+}
+
+function v350SafeError(error:unknown){
+  const raw=error instanceof Error?error.message:String(error);
+  return raw.replace(/(?:sk-|AIza|Bearer\s+)[A-Za-z0-9._-]{8,}/g,'[redacted]').slice(0,300);
+}
+
 async function v350AskModelImpl(input:{message:string;activeFile?:string|null;preferLocal?:boolean}){
-  const message=String(input.message||'').trim(); if(!message) throw new Error('message is required');
+  const message=String(input.message||'').trim();
+  if(!message) throw new Error('message is required');
+
   const routed:any=await v330SmartRoute({task:message,preferLocal:!!input.preferLocal,maxCandidates:5});
-  if(!routed.selected?.providerId) throw new Error('No enabled provider is available. Enable Gemini or Ollama first.');
-  const profiles=await v320ReadProfiles(); const profile=profiles.find(p=>p.id===routed.selected.providerId); if(!profile) throw new Error('Selected provider profile was not found.');
-  let model=profile.defaultModel||routed.selected.model||'';
-  if(!model){ const h:any=await v320ProviderHealth({providerId:profile.id}); model=String(h.results?.[0]?.models?.[0]||''); }
-  if(!model) throw new Error(`No model is available for ${profile.name}.`);
+  const profiles=await v320ReadProfiles();
+
+  const candidateIds=[routed.selected?.providerId,...(routed.candidates||[]).filter((x:any)=>x.healthy).map((x:any)=>x.providerId)]
+    .filter(Boolean)
+    .filter((id:string,index:number,all:string[])=>all.indexOf(id)===index)
+    .slice(0,3);
+
+  if(!candidateIds.length) throw new Error('No enabled healthy provider is available. Enable Gemini, an OpenAI-compatible provider, or Ollama first.');
+
   let fileContext='';
-  if(input.activeFile){ try{ const txt=await v80ReadTextFile(String(input.activeFile)); fileContext=txt.slice(0,14000); }catch{} }
+  if(input.activeFile){
+    try{
+      const txt=await v80ReadTextFile(String(input.activeFile));
+      fileContext=txt.slice(0,14000);
+    }catch{}
+  }
+
   const system=`You are KSA FORGE Developer Agent working on ${projectRoot}. Be concise and implementation-oriented. Analyze the current project before making broad claims. When code changes are requested, identify files, risks, verification steps and concrete edits. Do not claim commands/tests passed unless evidence is provided.${input.activeFile?` Current file: ${input.activeFile}`:''}`;
   const previousChat=await v350ReadChat();
   const user=fileContext?`${message}\n\nCURRENT FILE CONTEXT (${input.activeFile}):\n${fileContext}`:message;
   const messagesForModel=chatMessages(system,previousChat.messages||[],user);
-  const started=Date.now(); let answer=''; let httpStatus=0;
-  if(profile.kind==='ollama'){
-    const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),Math.max(15000,profile.timeoutMs||30000));
-    try{ const r=await fetch(`${v320NormalizeBase(profile.baseUrl)}/api/chat`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model,messages:messagesForModel,stream:false}),signal:ctrl.signal}); httpStatus=r.status; const d:any=await r.json(); if(!r.ok)throw new Error(d?.error||`Ollama HTTP ${r.status}`); answer=String(d?.message?.content||d?.response||'').trim(); } finally{clearTimeout(timer)}
-  }else{
-    const url=completionUrl(profile.baseUrl,profile.kind);
-    const headers={...v320AuthHeaders(profile),'content-type':'application/json'};
-    const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),Math.max(15000,profile.timeoutMs||30000));
-    try{ const r=await fetch(url,{method:'POST',headers,body:JSON.stringify({model,messages:messagesForModel,temperature:0.2}),signal:ctrl.signal}); httpStatus=r.status; const text=await r.text(); let d:any={}; try{d=JSON.parse(text)}catch{d={error:text.slice(0,500)}} if(!r.ok)throw new Error(d?.error?.message||d?.error||`Provider HTTP ${r.status}`); answer=v350ContentFromOpenAI(d); } finally{clearTimeout(timer)}
+  const attempts:any[]=[];
+
+  for(const providerId of candidateIds){
+    const profile=profiles.find((p:any)=>p.id===providerId);
+    if(!profile){
+      attempts.push({providerId,status:'SKIPPED',error:'Provider profile was not found.'});
+      continue;
+    }
+
+    const routeCandidate=(routed.candidates||[]).find((x:any)=>x.providerId===providerId);
+    let model=profile.defaultModel||routeCandidate?.model||'';
+    if(!model){
+      try{
+        const h:any=await v320ProviderHealth({providerId:profile.id});
+        model=String(h.results?.[0]?.models?.[0]||'');
+      }catch{}
+    }
+    if(!model){
+      attempts.push({providerId:profile.id,provider:profile.name,status:'SKIPPED',error:'No model is available.'});
+      continue;
+    }
+
+    try{
+      const response=await v350CallProvider(profile,model,messagesForModel);
+      attempts.push({
+        providerId:profile.id,
+        provider:profile.name,
+        model,
+        status:'PASS',
+        httpStatus:response.httpStatus,
+        latencyMs:response.latencyMs
+      });
+      const history=await v350ReadChat();
+      const messages=[
+        ...(history.messages||[]),
+        {role:'user',content:message,at:new Date().toISOString(),activeFile:input.activeFile||null},
+        {
+          role:'assistant',
+          content:response.answer,
+          at:new Date().toISOString(),
+          providerId:profile.id,
+          provider:profile.name,
+          model,
+          latencyMs:response.latencyMs,
+          failoverUsed:attempts.length>1,
+          attempts:attempts.map(({providerId,provider,model,status,httpStatus,error})=>({providerId,provider,model,status,httpStatus,error}))
+        }
+      ];
+      await v350WriteChat(messages);
+      return {
+        version:APP_VERSION,
+        status:'OK',
+        answer:response.answer,
+        providerId:profile.id,
+        provider:profile.name,
+        model,
+        latencyMs:response.latencyMs,
+        httpStatus:response.httpStatus,
+        route:routed.selected,
+        failoverUsed:attempts.length>1,
+        attempts
+      };
+    }catch(error){
+      attempts.push({
+        providerId:profile.id,
+        provider:profile.name,
+        model,
+        status:'FAIL',
+        error:v350SafeError(error)
+      });
+    }
   }
-  if(!answer) throw new Error('The provider returned an empty response.');
-  const history=await v350ReadChat(); const messages=[...(history.messages||[]),{role:'user',content:message,at:new Date().toISOString(),activeFile:input.activeFile||null},{role:'assistant',content:answer,at:new Date().toISOString(),providerId:profile.id,provider:profile.name,model,latencyMs:Date.now()-started}]; await v350WriteChat(messages);
-  return {version:APP_VERSION,status:'OK',answer,providerId:profile.id,provider:profile.name,model,latencyMs:Date.now()-started,httpStatus,route:routed.selected};
+
+  const summary=attempts.map((x:any)=>`${x.provider||x.providerId}: ${x.error||x.status}`).join(' | ');
+  throw new Error(`All provider attempts failed. ${summary}`);
 }
+
 async function v350FullScan(){
   const [runtime,diag,deps,git]=await Promise.all([v310RuntimeDoctor(),v60Diagnostics(),v90DependencyDoctor(),executeProgram('git',['status','--short'],projectRoot,30000)]);
   const health=await v90Health(diag);
