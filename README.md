@@ -1,4 +1,4 @@
-# KSA FORGE DEV v48
+# KSA FORGE DEV v49
 
 Local-first MCP developer platform with an integrated IDE surface, project inspection tools, automation runtime, model-provider routing, diagnostics, and verification gates.
 
@@ -118,9 +118,13 @@ Developer chat now includes a per-provider circuit breaker on top of V46 Smart F
 
 Developer chat now uses a half-open recovery phase after a provider circuit cooldown. When the cooldown expires, KSA Forge performs a provider health probe before allowing the provider back into the request path. A passing probe closes the circuit and restores the provider; a failed probe reopens the circuit for another cooldown window.
 
+## V49 provider reliability ledger
+
+Provider resilience telemetry is now persisted to disk instead of existing only in process memory. KSA Forge records request success/failure, failover usage, circuit opens/skips, and recovery-probe results. The Developer Platform status exposes aggregate success rate, latency, failure counts, failovers, circuit opens, and recoveries per provider.
+
 ## Version
 
-Current release line: **48.0.0**
+Current release line: **49.0.0**
 
 ### Modular MCP registration architecture
 
