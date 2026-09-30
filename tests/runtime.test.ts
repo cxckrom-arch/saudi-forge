@@ -31,6 +31,7 @@ import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-t
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
+import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -601,4 +602,28 @@ test('extracted v3.6 learning and confidence catalog remains stable', () => {
     chooseAgentForTask: () => ({ selectedAgent: 'developer', alternatives: [], reason: 'test' })
   });
   assert.deepEqual(names, ['learning_memory_record','learning_memory_recall','decision_confidence','adaptive_strategy_advisor','learning_memory_status']);
+});
+
+test('extracted v3.7 autopilot catalog remains stable', () => {
+  const names:string[] = [];
+  registerV37AutopilotTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    taskGraphFile: 'task-graph.json',
+    autopilotHistoryFile: 'autopilot-history.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    createAutopilotCheckpoint: async () => ({ id: 'cp' }),
+    createCouncilSession: async () => ({ id: 'c', requiredAgents: [], status: 'READY' }),
+    buildSmartContext: async () => ({ selected: [] }),
+    decideExecutionStrategy: () => ({ mode: 'SAFE', risk: 'LOW' }),
+    buildChangeSimulation: async () => ({ id: 's', risk: 'LOW', affectedFiles: [], affectedRoutes: [] }),
+    evaluatePreflight: async () => ({ status: 'PASS' }),
+    buildTaskGraph: () => ({ nodes: [] }),
+    kromStatePath: async (file:string) => file,
+    writeAutopilotState: async () => {},
+    appendAutopilotHistory: async () => {},
+    readAutopilotState: async () => null,
+    nextAutopilotPhase: () => 'verify',
+    restoreAutopilotCheckpoint: async () => []
+  });
+  assert.deepEqual(names, ['engineering_autopilot_start','autopilot_checkpoint','autopilot_quality_watchdog','autopilot_rollback','engineering_autopilot_status']);
 });
