@@ -10,7 +10,6 @@ import { promisify } from "node:util";
 
 import { ToolRuntime, automationInput, outcome } from './src/tool-runtime.js';
 import { resolveCommand } from './src/process-command.js';
-import { chatMessages, completionUrl } from './src/chat-context.js';
 import { MAX_FILE_SIZE, IGNORED_DIRS, TEXT_EXTENSIONS, createProjectContext } from './src/project-context.js';
 import { createPackageRunner } from './src/package-runner.js';
 import { registerAutomationTools } from './src/automation-tools.js';
@@ -4772,8 +4771,6 @@ const v350DeveloperPlatform = createDeveloperPlatformService({
   v90Health,
   executeProgram
 });
-const v350ReadChat = v350DeveloperPlatform.readChat;
-const v350WriteChat = v350DeveloperPlatform.writeChat;
 const v350AskModel = v350DeveloperPlatform.askModel;
 const v350FullScan = v350DeveloperPlatform.fullScan;
 const v350PreviewSet = v350DeveloperPlatform.previewSet;
