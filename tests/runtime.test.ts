@@ -10,6 +10,7 @@ import { chatMessages, completionUrl } from '../src/chat-context.js';
 import { resolveCommand } from '../src/process-command.js';
 import { createProjectContext } from '../src/project-context.js';
 import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
+import { createProviderStore } from '../src/provider-store.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -125,4 +126,39 @@ test('network policy remains loopback-only unless an explicit public host is all
  assert.ok(extended.allowedHosts.includes('forge.example.test'));
  assert.ok(extended.allowedOrigins.includes('forge.example.test'));
  assert.equal(extended.host,'127.0.0.1');
+});
+
+
+test('provider store sanitizes credential headers and builds model URLs',async t=>{
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-provider-store-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const stateDir=path.join(root,'state');
+  const profilesFile=path.join(stateDir,'profiles.json');
+  const store=createProviderStore({
+    stateDir,
+    profilesFile,
+    exists:async target=>{try{await fs.access(target);return true;}catch{return false;}},
+    env:{TEST_PROVIDER_KEY:'secret-value'}
+  });
+
+  const profile:any={
+    id:'test',
+    name:'Test',
+    kind:'openai-compatible',
+    baseUrl:'https://example.test/v1/',
+    apiKeyEnv:'TEST_PROVIDER_KEY',
+    enabled:true,
+    priority:1,
+    timeoutMs:1000,
+    headers:{'x-trace':'allowed','api-key':'blocked','Authorization':'blocked'}
+  };
+
+  const headers=store.authHeaders(profile);
+  assert.equal(headers.authorization,'Bearer secret-value');
+  assert.equal(headers['x-trace'],'allowed');
+  assert.equal(headers['api-key'],undefined);
+  assert.equal(headers.Authorization,undefined);
+  assert.equal(store.modelsUrl(profile),'https://example.test/v1/models');
+  assert.equal(store.modelsUrl({...profile,kind:'ollama',baseUrl:'http://127.0.0.1:11434/'}),'http://127.0.0.1:11434/api/tags');
+  assert.equal(store.modelsUrl({...profile,kind:'gemini',baseUrl:'https://generativelanguage.googleapis.com/v1beta/openai/'}),'https://generativelanguage.googleapis.com/v1beta/openai/models');
 });
