@@ -37,6 +37,7 @@ import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { registerV4ProductTools } from '../src/v4-product-tools.js';
 import { registerV5EngineeringSuiteTools } from '../src/v5-engineering-suite-tools.js';
 import { registerV6IdeCoreTools } from '../src/v6-ide-core-tools.js';
+import { registerV7VisualIdeTools } from '../src/v7-visual-ide-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -722,4 +723,17 @@ test('extracted v6 IDE core catalog remains stable', () => {
   });
   assert.equal(names.length,12);
   assert.deepEqual(names, ['lsp_diagnostics_v6','error_markers_v6','smart_file_explorer_v6','workspace_search_v6','diff_editor_v6','terminal_manager_v6','plugin_manager_v6','mcp_manager_v6','refactor_planner_v6','execution_stream_v6','ide_workspace_v6','ide_release_gate_v6']);
+});
+
+test('extracted v7 visual IDE catalog remains stable', () => {
+  const names:string[] = [];
+  registerV7VisualIdeTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot: process.cwd(), layoutFile:'layout.json', diagnosticsFile:'diag.json', selectorFile:'selector.json', previewFile:'preview.json', themeFile:'theme.json', visualGateFile:'gate.json',
+    result:(text:string)=>({content:[{type:'text',text}]}), errorResult:(error:unknown)=>({isError:true,error}),
+    v70WorkspaceState:async()=>({}), v70Layout:async()=>({}), v60WriteJson:async()=>({}), v60Diagnostics:async()=>({status:'PASS',count:0,diagnostics:[],byFile:{}}),
+    v60ReadJson:async()=>null, v70SelectorState:async()=>({}), v70PreviewState:async()=>({status:'IDLE',url:null}), executeProgram:async()=>({success:true,stdout:'',stderr:''}),
+    v50TaskBoard:async()=>({nodes:[],counts:{}}), v70Theme:async()=>({})
+  });
+  assert.equal(names.length,11);
+  assert.deepEqual(names, ['visual_ide_workspace_v7','panel_layout_v7','problems_panel_v7','agent_model_selector_v7','preview_session_v7','git_panel_v7','task_board_panel_v7','command_palette_v7','ui_theme_v7','workspace_snapshot_v7','visual_ide_gate_v7']);
 });
