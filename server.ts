@@ -21,6 +21,7 @@ import { registerAutomationHttpRoutes } from './src/automation-http-routes.js';
 import { registerDeveloperRoutes } from './src/developer-routes.js';
 import { registerWorkspaceRoutes } from './src/workspace-routes.js';
 import { createDiagnosticsService } from './src/diagnostics-service.js';
+import { createProviderStore, type ProviderKind as V320ProviderKind, type ProviderProfile as V320Profile } from './src/provider-store.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4587,43 +4588,28 @@ async function v310InstallStatus(){
 const V320_STATE_DIR = path.join(KROM_HOME, ".krom", "v32-providers");
 const V320_PROFILES_FILE = path.join(V320_STATE_DIR, "provider-profiles.json");
 const V320_ROUTING_FILE = path.join(V320_STATE_DIR, "routing-policy.json");
-type V320ProviderKind = "ollama" | "gpt4all" | "gemini" | "openai-compatible" | "custom";
-type V320Profile = {id:string;name:string;kind:V320ProviderKind;baseUrl:string;apiKeyEnv?:string;defaultModel?:string;enabled:boolean;priority:number;timeoutMs:number;headers?:Record<string,string>};
-async function v320Ensure(){ await fs.mkdir(V320_STATE_DIR,{recursive:true}); }
-function v320NormalizeBase(baseUrl:string){ return String(baseUrl||'').trim().replace(/\/+$/,''); }
-function v320SafeId(v:string){ return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,64); }
+const v320ProviderStore = createProviderStore({
+  stateDir: V320_STATE_DIR,
+  profilesFile: V320_PROFILES_FILE,
+  exists
+});
+const v320Ensure = v320ProviderStore.ensure;
+const v320NormalizeBase = v320ProviderStore.normalizeBase;
+const v320SafeId = v320ProviderStore.safeId;
+const v320ReadProfiles = v320ProviderStore.readProfiles;
+const v320SaveProfiles = v320ProviderStore.saveProfiles;
+const v320AuthHeaders = v320ProviderStore.authHeaders;
+const v320ModelsUrl = v320ProviderStore.modelsUrl;
+const v320ExtractModels = v320ProviderStore.extractModels;
+
 async function v320Write(name:string,data:any){ await v320Ensure(); const out={generatedAt:new Date().toISOString(),...data}; await fs.writeFile(path.join(V320_STATE_DIR,name),JSON.stringify(out,null,2),'utf8'); return out; }
-async function v320ReadProfiles():Promise<V320Profile[]>{
-  await v320Ensure();
-  if(!(await exists(V320_PROFILES_FILE))){
-    const defaults:V320Profile[]=[
-      {id:'ollama-local',name:'Ollama Local',kind:'ollama',baseUrl:'http://127.0.0.1:11434',enabled:true,priority:10,timeoutMs:5000},
-      {id:'gpt4all-local',name:'GPT4All Local',kind:'gpt4all',baseUrl:'http://127.0.0.1:4891',enabled:false,priority:20,timeoutMs:5000},
-      {id:'gemini-google',name:'Google Gemini',kind:'gemini',baseUrl:'https://generativelanguage.googleapis.com/v1beta/openai',apiKeyEnv:'GEMINI_API_KEY',enabled:false,priority:30,timeoutMs:12000}
-    ];
-    await fs.writeFile(V320_PROFILES_FILE,JSON.stringify({version:'32.1.0',profiles:defaults},null,2),'utf8');
-    return defaults;
-  }
-  try{ const x=JSON.parse(await fs.readFile(V320_PROFILES_FILE,'utf8')); return Array.isArray(x)?x:(x.profiles||[]); }catch{return [];}
-}
-async function v320SaveProfiles(profiles:V320Profile[]){ await v320Ensure(); await fs.writeFile(V320_PROFILES_FILE,JSON.stringify({version:'32.1.0',updatedAt:new Date().toISOString(),profiles},null,2),'utf8'); }
-function v320AuthHeaders(profile:V320Profile){
-  const h:Record<string,string>={'accept':'application/json'};
-  if(profile.apiKeyEnv){ const value=process.env[profile.apiKeyEnv]; if(value) h.authorization=`Bearer ${value}`; }
-  for(const [k,v] of Object.entries(profile.headers||{})){ if(!/authorization|api[-_]?key/i.test(k)) h[k]=v; }
-  return h;
-}
 async function v320FetchJson(url:string,profile:V320Profile){
   const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),Math.max(1000,profile.timeoutMs||5000));
   try{ const r=await fetch(url,{headers:v320AuthHeaders(profile),signal:ctrl.signal}); const text=await r.text(); let data:any=null; try{data=text?JSON.parse(text):null}catch{data=text.slice(0,500)}; return {ok:r.ok,status:r.status,data}; }
   catch(e:any){ return {ok:false,status:0,error:String(e?.name==='AbortError'?'timeout':e?.message||e)}; }
   finally{ clearTimeout(timer); }
 }
-function v320ModelsUrl(profile:V320Profile){ const b=v320NormalizeBase(profile.baseUrl); if(profile.kind==='ollama') return `${b}/api/tags`; if(profile.kind==='gemini') return `${b}/models`; return /\/v1$/i.test(b)?`${b}/models`:`${b}/v1/models`; }
-function v320ExtractModels(profile:V320Profile,data:any):string[]{
-  if(profile.kind==='ollama') return (data?.models||[]).map((x:any)=>String(x?.name||x?.model||'')).filter(Boolean);
-  return (data?.data||data?.models||[]).map((x:any)=>String(typeof x==='string'?x:(x?.id||x?.name||x?.model||''))).filter(Boolean);
-}
+
 async function v320ProfileUpsert(input:any){
   const profiles=await v320ReadProfiles(); const id=v320SafeId(input.id||input.name); if(!id) throw new Error('Provider id/name is required.');
   const baseUrl=v320NormalizeBase(input.baseUrl); if(!/^https?:\/\//i.test(baseUrl)) throw new Error('baseUrl must use http:// or https://');
