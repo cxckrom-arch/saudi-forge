@@ -25,6 +25,7 @@ import { createProviderStore, type ProviderKind as V320ProviderKind, type Provid
 import { createProviderService } from './src/provider-service.js';
 import { createProviderRouting, classifyTask } from './src/provider-routing.js';
 import { createAdaptiveModelService } from './src/adaptive-model-service.js';
+import { createSecretManager } from './src/secret-manager.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4663,50 +4664,20 @@ const v330Status = v330AdaptiveModel.status;
 
 
 // ===== v34.2 PROVIDER MANAGEMENT & SECRET HANDLING =====
-function v342SecretsFile(){ return path.join(KROM_HOME,'.krom-secrets','provider-secrets.env'); }
-async function v342LoadSecretEnv(){
-  const file=v342SecretsFile();
-  try{
-    const txt=await fs.readFile(file,'utf8');
-    for(const raw of txt.split(/\r?\n/)){
-      const line=raw.trim(); if(!line||line.startsWith('#'))continue;
-      const i=line.indexOf('='); if(i<1)continue;
-      const key=line.slice(0,i).trim(); let value=line.slice(i+1).trim();
-      if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'"))) value=value.slice(1,-1);
-      if(/^[A-Z_][A-Z0-9_]*$/i.test(key) && !process.env[key]) process.env[key]=value;
-    }
-  }catch{}
-}
-async function v342PersistSecret(key:string,value:string){
-  if(!/^[A-Z_][A-Z0-9_]*$/i.test(key)) throw new Error('Invalid secret environment variable name');
-  if(!value || value.length<8) throw new Error('API key is too short');
-  const dir=path.dirname(v342SecretsFile()); await fs.mkdir(dir,{recursive:true});
-  let lines:string[]=[]; try{lines=(await fs.readFile(v342SecretsFile(),'utf8')).split(/\r?\n/)}catch{}
-  const safe=value.replace(/\r|\n/g,'');
-  let found=false; lines=lines.map(line=>{if(line.startsWith(key+'=')){found=true;return key+'='+safe}return line});
-  if(!found) lines.push(key+'='+safe);
-  await fs.writeFile(v342SecretsFile(),lines.filter(Boolean).join('\n')+'\n','utf8');
-  process.env[key]=safe;
-  return {configured:true,env:key,persisted:true};
-}
-async function v342SetCredential(input:{providerId:string;apiKey:string}){
-  const profiles=await v320ReadProfiles(); const p=profiles.find(x=>x.id===input.providerId); if(!p)throw new Error(`Unknown provider: ${input.providerId}`);
-  if(!p.apiKeyEnv) throw new Error('This provider does not require an API key');
-  await v342PersistSecret(p.apiKeyEnv,input.apiKey);
-  return {version:'34.5.0',status:'SAVED',providerId:p.id,credentialConfigured:true,apiKeyEnv:p.apiKeyEnv};
-}
-async function v342ToggleProvider(input:{providerId:string;enabled:boolean}){
-  return v340ProviderControl({providerId:input.providerId,enabled:input.enabled});
-}
-async function v342TestProvider(input:{providerId:string}){
-  const h:any=await v320ProviderHealth({providerId:input.providerId});
-  const r=(h.results||[])[0]||null;
-  return {version:'34.5.0',status:r?.ok?'PASS':'FAIL',provider:r};
-}
-async function v342SetDefault(input:{providerId:string;model:string}){
-  const result=await v320SelectModel({providerId:input.providerId,model:input.model});
-  return {version:'34.5.0',status:'SAVED',providerId:input.providerId,model:input.model,result};
-}
+const v342SecretManager = createSecretManager({
+  kromHome: KROM_HOME,
+  readProfiles: v320ReadProfiles,
+  providerHealth: v320ProviderHealth,
+  selectModel: v320SelectModel,
+  providerControl: async (input) => v340ProviderControl(input)
+});
+const v342SecretsFile = v342SecretManager.secretsFile;
+const v342LoadSecretEnv = v342SecretManager.loadSecretEnv;
+const v342PersistSecret = v342SecretManager.persistSecret;
+const v342SetCredential = v342SecretManager.setCredential;
+const v342ToggleProvider = v342SecretManager.toggleProvider;
+const v342TestProvider = v342SecretManager.testProvider;
+const v342SetDefault = v342SecretManager.setDefault;
 // ===== END v34.2 PROVIDER MANAGEMENT =====
 
 // ===== v34.0 AI CONTROL CENTER & UNIFIED RUNTIME CONSOLE =====
