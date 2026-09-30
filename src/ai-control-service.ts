@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { ProviderProfile } from "./provider-store.js";
 import type { TaskClass } from "./provider-routing.js";
+import { APP_NAME, APP_VERSION, APP_DISPLAY_VERSION } from "./release-info.js";
 
 export function createAiControlService(options: {
   stateDir: string;
@@ -54,9 +55,9 @@ export function createAiControlService(options: {
 
     const reliabilityState: any = await reliability({});
     return {
-      version: "34.5.0",
+      version: APP_VERSION,
       status: "READY",
-      activeVersion: "34.4.0",
+      activeVersion: APP_VERSION,
       kromHome,
       projectRoot,
       providers: providerState.profiles || [],
@@ -90,7 +91,7 @@ export function createAiControlService(options: {
 
     await saveProfiles(providerList);
     return write("provider-control.json", {
-      version: "34.5.0",
+      version: APP_VERSION,
       status: "SAVED",
       provider: {
         ...providerList[index],
@@ -120,7 +121,7 @@ export function createAiControlService(options: {
     }
 
     return write("quick-select.json", {
-      version: "34.5.0",
+      version: APP_VERSION,
       status: "SAVED",
       providerId: input.providerId,
       model: input.model,
@@ -132,7 +133,7 @@ export function createAiControlService(options: {
   async function routePreview(input: { task: string; preferLocal?: boolean }) {
     const explained: any = await routeExplain({ task: input.task });
     return write("route-preview.json", {
-      version: "34.5.0",
+      version: APP_VERSION,
       ...explained,
       preferLocal: !!input.preferLocal
     });
@@ -148,10 +149,10 @@ export function createAiControlService(options: {
     const unique = [...new Set(legacy)];
 
     return write("runtime-banner-audit.json", {
-      version: "34.5.0",
-      status: unique.some((item) => !item.includes("v34.2")) ? "REVIEW" : "PASS",
-      activeBanner: "KROM FORGE DEV v34.5 - AI CONTROL CENTER",
-      legacyMentions: unique.filter((item) => !item.includes("v34.2"))
+      version: APP_VERSION,
+      status: unique.some((item) => !item.includes(APP_DISPLAY_VERSION)) ? "REVIEW" : "PASS",
+      activeBanner: `${APP_NAME} ${APP_DISPLAY_VERSION} - AI CONTROL CENTER`,
+      legacyMentions: unique.filter((item) => !item.includes(APP_DISPLAY_VERSION))
     });
   }
 
@@ -159,7 +160,7 @@ export function createAiControlService(options: {
     const control = await controlStatus();
     const banner = await runtimeBannerAudit();
     return {
-      version: "34.5.0",
+      version: APP_VERSION,
       status: "READY",
       providers: control.providers.length,
       routing: control.routing,
