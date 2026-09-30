@@ -17,6 +17,7 @@ import { registerAutomationTools } from './src/automation-tools.js';
 import { LOOPBACK_HOST, createNetworkPolicy } from './src/network-policy.js';
 import { APP_NAME, APP_VERSION, APP_DISPLAY_VERSION } from './src/release-info.js';
 import { registerAiControlRoutes } from './src/ai-control-routes.js';
+import { registerAutomationHttpRoutes } from './src/automation-http-routes.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -8488,15 +8489,8 @@ registerAiControlRoutes(app, {
 });
 
 app.get('/ide/tools',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(await fs.readFile(new URL('./public/tools.html',import.meta.url),'utf8')));
-app.get('/ide/api/tools',async()=>({tools:toolRuntime.catalog(),transport:'shared MCP handlers'}));
-app.get('/ide/api/automations',async()=>toolRuntime.snapshot());
-const runtimeEndpoint=(action:(request:any)=>Promise<any>)=>async(request:any,reply:any)=>{try{return await action(request);}catch(error:any){return reply.code(error.message==='Another run is already active'?409:400).send({error:error.message});}};
-app.post('/ide/api/tools/run',runtimeEndpoint(async request=>{const input=z.object({tool:z.string(),arguments:z.record(z.string(),z.unknown()).default({})}).strict().parse(request.body);return toolRuntime.start(input.tool,[input]);}));
-app.post('/ide/api/automations',runtimeEndpoint(async request=>toolRuntime.upsert(request.body)));
-app.put('/ide/api/automations/:id',runtimeEndpoint(async request=>toolRuntime.upsert(request.body,request.params.id)));
-app.delete('/ide/api/automations/:id',runtimeEndpoint(async request=>toolRuntime.remove(request.params.id)));
-app.post('/ide/api/automations/:id/run',runtimeEndpoint(async request=>toolRuntime.startJob(request.params.id)));
-app.post('/ide/api/runs/:id/cancel',runtimeEndpoint(async request=>toolRuntime.cancel(request.params.id)));
+app.get('/ide/tools',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(await fs.readFile(new URL('./public/tools.html',import.meta.url),'utf8')));
+registerAutomationHttpRoutes(app, toolRuntime);
 app.addHook('onClose',async()=>{toolRuntime.stopScheduler();await catalogServer.close();});
 await app.listen({
   port: PORT,
