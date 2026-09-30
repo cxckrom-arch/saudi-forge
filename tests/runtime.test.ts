@@ -23,6 +23,7 @@ import { createDeveloperPlatformService } from '../src/developer-platform-servic
 import { registerCoreProjectTools } from '../src/core-project-tools.js';
 import { registerPrecisionExecutionTools } from '../src/precision-execution-tools.js';
 import { registerPromptStudioTools } from '../src/prompt-studio-tools.js';
+import { registerVisualDesignerTools } from '../src/visual-designer-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -466,4 +467,16 @@ test('extracted prompt studio registration preserves the eight-tool catalog', ()
     'build_prompt','improve_prompt','prompt_from_project','design_ui_prompt',
     'generate_design_system','ui_design_quality_check','prompt_quality_check','prompt_library'
   ]);
+});
+
+test('extracted visual designer registration preserves the three-tool catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerVisualDesignerTools(server, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    visualDesignerMandate: () => '',
+    visualReviewScore: () => ({ score: 0, missing: [] })
+  });
+  assert.deepEqual(names, ['visual_designer_agent','visual_review','visual_iteration_plan']);
 });
