@@ -39,6 +39,7 @@ import { registerV5EngineeringSuiteTools } from '../src/v5-engineering-suite-too
 import { registerV6IdeCoreTools } from '../src/v6-ide-core-tools.js';
 import { registerV7VisualIdeTools } from '../src/v7-visual-ide-tools.js';
 import { registerV8WorkbenchTools } from '../src/v8-workbench-tools.js';
+import { registerV9EngineeringOpsTools } from '../src/v9-engineering-ops-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -751,4 +752,16 @@ test('extracted v8 workbench catalog remains stable', () => {
   });
   assert.equal(names.length,10);
   assert.deepEqual(names, ['workbench_state_v8','editor_open_file_v8','editor_save_file_v8','apply_patch_v8','edit_history_v8','editor_problems_v8','ai_file_context_v8','terminal_script_v8','git_commit_v8','workbench_gate_v8']);
+});
+
+test('extracted v9 engineering operations catalog remains stable', () => {
+  const names:string[] = [];
+  registerV9EngineeringOpsTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot:process.cwd(), extensionDir:'.krom/extensions', profileFile:'profile.json', healthFile:'health.json', releaseFile:'release.json',
+    result:(text:string)=>({content:[{type:'text',text}]}), errorResult:(error:unknown)=>({isError:true,error}), v90Processes:new Map(), v90TailPush:()=>{},
+    v90DeclaredScripts:async()=>({scripts:{},packageManager:'npm'}), v90TestInventory:async()=>({}), v90ApiInventory:async()=>({}), v90DatabaseInventory:async()=>({}), v90EnvAudit:async()=>({}),
+    safePath:(v:string)=>v, exists:async()=>false, normalizeRel:(v:string)=>v, v60ReadJson:async()=>({}), v60WriteJson:async()=>({}), v90DependencyDoctor:async()=>({}), v90Health:async()=>({}), v90ReleaseCenter:async()=>({})
+  });
+  assert.equal(names.length,11);
+  assert.deepEqual(names, ['runtime_process_manager_v9','test_explorer_v9','debug_log_center_v9','api_inspector_v9','database_panel_v9','env_secrets_manager_v9','extension_sdk_v9','workspace_profile_v9','dependency_doctor_v9','project_health_dashboard_v9','release_center_v9']);
 });
