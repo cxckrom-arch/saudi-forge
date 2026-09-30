@@ -53,6 +53,7 @@ import { registerV8WorkbenchTools } from '../src/v8-workbench-tools.js';
 import { registerV9EngineeringOpsTools } from '../src/v9-engineering-ops-tools.js';
 import { registerV10SoftwareFactoryTools } from '../src/v10-software-factory-tools.js';
 import { registerV11ReliabilityTools } from '../src/v11-reliability-tools.js';
+import { sanitizePromptName, generatePrompt, scorePrompt, visualReviewScore } from '../src/prompt-design-service.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
