@@ -27,6 +27,7 @@ import { registerVisualDesignerTools } from '../src/visual-designer-tools.js';
 import { registerV3CoreTools } from '../src/v3-core-tools.js';
 import { registerV31BrowserTools } from '../src/v31-browser-tools.js';
 import { registerV32RepairTools } from '../src/v32-repair-tools.js';
+import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -524,4 +525,20 @@ test('extracted v3.1 browser and v3.2 repair catalogs remain stable', () => {
     locateLikelyFiles: async () => []
   });
   assert.deepEqual(repairNames, ['autonomous_repair_begin','autonomous_repair_verify','autonomous_repair_status','repair_source_locator']);
+});
+
+test('extracted v3.3 code intelligence catalog remains stable', () => {
+  const names:string[] = [];
+  registerV33CodeIntelligenceTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    buildCodeIntelligenceGraph: async () => ({ nodes: {}, generatedAt: '', stats: {}, unresolvedImports: [] }),
+    readCodeIntelligenceGraph: async () => null,
+    dependencyReach: () => ({ all: [] }),
+    riskForImpact: () => ({ level: 'LOW' }),
+    normalizeRel: (v:string) => v,
+    readExecutionManifest: async () => null,
+    codeIntelFile: 'code-intelligence.json'
+  });
+  assert.deepEqual(names, ['code_intelligence_scan','impact_analysis','symbol_intelligence','regression_scope']);
 });
