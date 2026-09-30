@@ -18,3 +18,13 @@ Release requires clean install, TypeScript PASS, unit tests PASS, live server st
 ## Remaining technical debt
 
 The largest remaining blocks in `server.ts` are MCP tool-registration groups and legacy UI-generation sections.
+
+## Post-release hardening
+
+- Centralized AI Control release identity on `APP_VERSION` / `APP_DISPLAY_VERSION`.
+- Removed stale visible IDE banners from legacy UI generators.
+- Changed runtime banner audit to inspect visible UI banners instead of historical comments.
+- Separated workspace `version` (release) from `schemaVersion` (internal state contract).
+- Updated provider and secret-management API responses to expose the current release while preserving module schema versions.
+- Prevented adaptive route metadata from overriding the current release version.
+- Added regression coverage for release consistency, workspace version contracts, visible legacy banners, provider/secret version contracts, and route-preview version precedence.
