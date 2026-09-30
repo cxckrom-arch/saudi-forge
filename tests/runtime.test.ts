@@ -32,6 +32,7 @@ import { registerV34ContextDecisionTools } from '../src/v34-context-decision-too
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
+import { registerV26V31Tools } from '../src/v26-v31-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
@@ -811,4 +812,19 @@ test('extracted v21-v25 registration preserves the 63-tool catalog', () => {
     'test_impact_intelligence_v21','quality_policy_init_v22','architecture_fitness_v23',
     'knowledge_graph_build_v24','design_token_audit_v25','design_intelligence_status_v25'
   ]) assert.ok(names.includes(required), required);
+});
+
+test('extracted v26-v31 registration preserves the 64-tool catalog', () => {
+  const names:string[] = [];
+  registerV26V31Tools({ registerTool: (name:string) => { names.push(name); } } as any, {} as any);
+  assert.equal(names.length, 64);
+  for (const required of [
+    'design_system_tokens_v26','feature_spec_compile_v27','evolution_map_v28',
+    'product_capability_map_v29','experiment_hypothesis_v30','workspace_bootstrap_v31','install_status_v31'
+  ]) assert.ok(names.includes(required), required);
+});
+
+test('server composition root contains no inline MCP tool registrations', async () => {
+  const source = await fs.readFile(path.resolve('server.ts'), 'utf8');
+  assert.equal((source.match(/server\\.registerTool\\(/g) || []).length, 0);
 });
