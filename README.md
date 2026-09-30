@@ -1,4 +1,4 @@
-# KSA FORGE DEV v45
+# KSA FORGE DEV v46
 
 Local-first MCP developer platform with an integrated IDE surface, project inspection tools, automation runtime, model-provider routing, diagnostics, and verification gates.
 
@@ -106,9 +106,13 @@ The V37 modularization has started with:
 - Automation execution uses a tool allowlist and Zod input validation.
 - Repository push protection should remain enabled.
 
+## V46 reliability upgrade
+
+Developer chat now uses bounded smart failover. The highest-ranked healthy provider is tried first; on request failure, KSA Forge can move through up to two additional healthy routed candidates. Attempt metadata is retained for diagnostics without persisting credentials.
+
 ## Version
 
-Current release line: **45.0.0**
+Current release line: **46.0.0**
 
 ### Modular MCP registration architecture
 
