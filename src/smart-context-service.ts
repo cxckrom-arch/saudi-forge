@@ -48,7 +48,9 @@ export function createSmartContextService(options:{
 // KROM v3.4 SMART CONTEXT + DECISION ENGINE
 // =========================================================
 
-
+function normalizeRel(file: string) {
+  return file.replace(/\\/g, "/");
+}
 
 function taskTerms(input: string) {
   const stop = new Set(["this","that","with","from","into","when","then","have","will","your","make","build","fix","update","add","remove","the","and","for","are","you","على","من","في","الى","إلى","هذا","هذه","مع","ثم","بعد","قبل","اضف","أضف","عدل","طور","تطوير","اصلح","إصلاح","اصلاح"]);
@@ -75,7 +77,7 @@ async function buildSmartContext(query: string, maxFiles = 30, maxChars = 120000
   const manifest = await readExecutionManifest();
   const changedFiles = (manifest?.changedFiles || []).map(normalizeRel);
   const terms = taskTerms(query);
-  const primary: ContextCandidate[] = Object.values(graph.nodes).map(node => {
+  const primary: ContextCandidate[] = (Object.values(graph.nodes) as CodeIntelNode[]).map(node => {
     const s = scoreContextNode(node, terms, changedFiles);
     return { file: node.file, score: s.score, reasons: s.reasons, kind: node.kind, routes: node.routes, dependents: node.importedBy.length, dependencies: node.imports.length };
   }).filter(x => x.score > 0).sort((a,b) => b.score - a.score || b.dependents - a.dependents);
