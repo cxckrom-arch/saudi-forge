@@ -24,6 +24,7 @@ import { registerCoreProjectTools } from '../src/core-project-tools.js';
 import { registerPrecisionExecutionTools } from '../src/precision-execution-tools.js';
 import { registerPromptStudioTools } from '../src/prompt-studio-tools.js';
 import { registerVisualDesignerTools } from '../src/visual-designer-tools.js';
+import { registerV3CoreTools } from '../src/v3-core-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -479,4 +480,23 @@ test('extracted visual designer registration preserves the three-tool catalog', 
     visualReviewScore: () => ({ score: 0, missing: [] })
   });
   assert.deepEqual(names, ['visual_designer_agent','visual_review','visual_iteration_plan']);
+});
+
+test('extracted v3 core registration preserves orchestration and gate catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerV3CoreTools(server, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    orchestratorPlan: () => ({}),
+    readProjectMemory: async () => ({}),
+    writeProjectMemory: async () => {},
+    traceabilityFromManifest: () => ({}),
+    readExecutionManifest: async () => null,
+    runNpmScriptIfPresent: async () => ({ available: false, success: null })
+  });
+  assert.deepEqual(names, [
+    'master_orchestrator','project_memory','requirement_traceability',
+    'browser_test','screenshot_visual_inspector','release_gate_v3'
+  ]);
 });
