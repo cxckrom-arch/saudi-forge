@@ -26,6 +26,7 @@ import { createProviderService } from './src/provider-service.js';
 import { createProviderRouting, classifyTask } from './src/provider-routing.js';
 import { createAdaptiveModelService } from './src/adaptive-model-service.js';
 import { createSecretManager } from './src/secret-manager.js';
+import { createAiControlService } from './src/ai-control-service.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4682,33 +4683,29 @@ await v342LoadSecretEnv();
 
 // ===== v34.0 AI CONTROL CENTER & UNIFIED RUNTIME CONSOLE =====
 const V340_STATE_DIR = path.join(KROM_HOME, ".krom", "v34-ai-control-center");
-async function v340Ensure(){ await fs.mkdir(V340_STATE_DIR,{recursive:true}); }
-async function v340Write(name:string,data:any){ await v340Ensure(); const out={generatedAt:new Date().toISOString(),...data}; await fs.writeFile(path.join(V340_STATE_DIR,name),JSON.stringify(out,null,2),'utf8'); return out; }
-async function v340ControlStatus(){
-  const profiles:any=await v320Profiles();
-  let routing:any=null; try{routing=JSON.parse(await fs.readFile(V320_ROUTING_FILE,'utf8'))}catch{}
-  const reliability:any=await v330Reliability({});
-  return {version:'34.5.0',status:'READY',activeVersion:'34.4.0',kromHome:KROM_HOME,projectRoot:PROJECT_ROOT,providers:profiles.profiles||[],routing:routing?.routes||{},reliability:reliability.providers||[],endpoints:{ide:`http://127.0.0.1:${PORT}/ide`,mcp:`http://127.0.0.1:${PORT}/mcp`}};
-}
-async function v340ProviderControl(input:{providerId:string;enabled?:boolean;priority?:number}){
-  const profiles=await v320ReadProfiles(); const idx=profiles.findIndex(p=>p.id===input.providerId); if(idx<0)throw new Error(`Unknown provider: ${input.providerId}`);
-  if(typeof input.enabled==='boolean') profiles[idx].enabled=input.enabled;
-  if(Number.isFinite(input.priority)) profiles[idx].priority=Math.max(1,Math.min(999,Number(input.priority)));
-  await v320SaveProfiles(profiles); return v340Write('provider-control.json',{version:'34.5.0',status:'SAVED',provider:{...profiles[idx],credentialConfigured:profiles[idx].apiKeyEnv?!!process.env[profiles[idx].apiKeyEnv]:true}});
-}
-async function v340QuickSelect(input:{providerId:string;model:string;taskClass?:'coding'|'planning'|'design'|'general'}){
-  const selected=await v320SelectModel({providerId:input.providerId,model:input.model});
-  if(input.taskClass){ const k=input.taskClass; const patch:any={}; patch[`${k}Provider`]=input.providerId; patch[`${k}Model`]=input.model; await v320RoutingPolicy(patch); }
-  return v340Write('quick-select.json',{version:'34.5.0',status:'SAVED',providerId:input.providerId,model:input.model,taskClass:input.taskClass||null,selected});
-}
-async function v340RoutePreview(input:{task:string;preferLocal?:boolean}){ const x:any=await v330RouteExplain({task:input.task}); return v340Write('route-preview.json',{version:'34.5.0',...x,preferLocal:!!input.preferLocal}); }
-async function v340RuntimeBannerAudit(){
-  const source=await fs.readFile(path.join(KROM_HOME,'server.ts'),'utf8').catch(()=> '');
-  const legacy=[...source.matchAll(/KROM FORGE DEV v(\d+(?:\.\d+)?)/g)].map(m=>m[0]);
-  const unique=[...new Set(legacy)];
-  return v340Write('runtime-banner-audit.json',{version:'34.5.0',status:unique.some(x=>!x.includes('v34.2'))?'REVIEW':'PASS',activeBanner:'KROM FORGE DEV v34.5 - AI CONTROL CENTER',legacyMentions:unique.filter(x=>!x.includes('v34.2'))});
-}
-async function v340Status(){ const c=await v340ControlStatus(); const b=await v340RuntimeBannerAudit(); return {version:'34.5.0',status:'READY',providers:c.providers.length,routing:c.routing,legacyBannerReview:b.status==='REVIEW',stateDir:V340_STATE_DIR}; }
+const v340AiControl = createAiControlService({
+  stateDir: V340_STATE_DIR,
+  kromHome: KROM_HOME,
+  projectRoot: PROJECT_ROOT,
+  port: PORT,
+  routingFile: V320_ROUTING_FILE,
+  profiles: v320Profiles,
+  reliability: v330Reliability,
+  readProfiles: v320ReadProfiles,
+  saveProfiles: v320SaveProfiles,
+  selectModel: v320SelectModel,
+  routingPolicy: v320RoutingPolicy,
+  routeExplain: v330RouteExplain
+});
+const v340Ensure = v340AiControl.ensure;
+const v340Write = v340AiControl.write;
+const v340ControlStatus = v340AiControl.controlStatus;
+const v340ProviderControl = v340AiControl.providerControl;
+const v340QuickSelect = v340AiControl.quickSelect;
+const v340RoutePreview = v340AiControl.routePreview;
+const v340RuntimeBannerAudit = v340AiControl.runtimeBannerAudit;
+const v340Status = v340AiControl.status;
+
 function v344EscHtml(value:any){
   return String(value ?? '').replace(/[&<>\"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"} as any)[c]||c);
 }
