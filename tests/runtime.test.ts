@@ -32,6 +32,7 @@ import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-t
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { createPredictiveEngineeringService } from '../src/predictive-engineering-service.js';
+import { createLearningMemoryService } from '../src/learning-memory-service.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
@@ -974,4 +975,25 @@ test('predictive engineering service builds scoped simulation and enforces check
   const preflight=await service.evaluatePreflight(sim,true);
   assert.equal(preflight.status,'BLOCKED');
   assert.ok(preflight.blockers.some((x:string)=>x.includes('checkpoint')));
+});
+
+test('learning memory service persists bounded evidence and scores confidence conservatively', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-learning-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const service=createLearningMemoryService({kromStatePath:async(file:string)=>path.join(root,file)});
+  assert.equal(service.taskTypeOf('Fix login auth permission bug'),'repair');
+  await service.writeLearningMemory([{
+    id:'L1',at:new Date().toISOString(),taskType:'repair',task:'fix bug',outcome:'success',
+    evidence:['test:pass'],lesson:'verify the failing path first',tags:['bug'],confidence:85,source:'runtime'
+  }]);
+  const rows=await service.readLearningMemory();
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].confidence,85);
+  const low=service.assessDecisionConfidence({contextFiles:0,evidence:[],unresolvedGaps:2,priorFailures:2,highRisk:true});
+  assert.equal(low.band,'LOW');
+  const high=service.assessDecisionConfidence({contextFiles:5,evidence:['a','b'],unresolvedGaps:0,priorSuccesses:3});
+  assert.equal(high.band,'HIGH');
+  const summary=service.summarizeLessons(rows,'fix another bug');
+  assert.equal(summary.taskType,'repair');
+  assert.equal(summary.successes,1);
 });
