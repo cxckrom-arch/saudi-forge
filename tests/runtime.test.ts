@@ -29,6 +29,7 @@ import { registerV31BrowserTools } from '../src/v31-browser-tools.js';
 import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
+import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -558,4 +559,22 @@ test('extracted v3.4 context and decision catalog remains stable', () => {
     buildCodeIntelligenceGraph: async () => ({ nodes: {}, unresolvedImports: [] })
   });
   assert.deepEqual(names, ['smart_context_build','context_file_pack','decision_engine','context_gap_check']);
+});
+
+test('extracted v3.5 adaptive runtime catalog remains stable', () => {
+  const names:string[] = [];
+  registerV35AdaptiveRuntimeTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    smartContextFile: 'smart-context.json',
+    taskGraphFile: 'task-graph.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    kromStatePath: async (file:string) => file,
+    buildSmartContext: async () => ({ query: '', selected: [] }),
+    decideExecutionStrategy: () => ({}),
+    buildTaskGraph: () => ({ nodes: [] }),
+    readRuntimeHistory: async () => [],
+    writeRuntimeHistory: async () => {},
+    chooseAgentForTask: () => ({ selectedAgent: 'developer', reason: 'test' })
+  });
+  assert.deepEqual(names, ['task_decomposition_graph','task_graph_update','adaptive_agent_route','runtime_outcome','adaptive_runtime_status']);
 });
