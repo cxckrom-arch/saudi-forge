@@ -1,0 +1,20 @@
+# KSA FORGE v45.0.0
+
+## Release objective
+
+V45 extracts AI Control orchestration from the monolithic server while preserving existing MCP, IDE, provider, and routing behavior.
+
+## Changes
+
+- Added `src/ai-control-service.ts` for AI control status, provider enable/priority updates, quick model selection, route previews, and runtime banner audits.
+- Continued using `src/secret-manager.ts`, `src/provider-service.ts`, `src/provider-routing.ts`, and `src/adaptive-model-service.ts` as lower-level provider layers.
+- Added V45 MCP automation aliases while retaining V44 through V36 aliases.
+- Bumped package, lockfile, KROM config, runtime identity, CI workflow, and integration evidence to 45.0.0.
+
+## Verification
+
+Release requires clean install, TypeScript PASS, unit tests PASS, live server startup, IDE readiness, MCP integration, automation flow, origin rejection, Git/project scan contract, provider/secret regressions, and backward compatibility aliases.
+
+## Remaining technical debt
+
+The largest remaining blocks in `server.ts` are MCP tool-registration groups and legacy UI-generation sections.
