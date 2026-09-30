@@ -18,6 +18,7 @@ import { LOOPBACK_HOST, createNetworkPolicy } from './src/network-policy.js';
 import { APP_NAME, APP_VERSION, APP_DISPLAY_VERSION } from './src/release-info.js';
 import { registerAiControlRoutes } from './src/ai-control-routes.js';
 import { registerAutomationHttpRoutes } from './src/automation-http-routes.js';
+import { registerDeveloperRoutes } from './src/developer-routes.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -8472,10 +8473,12 @@ app.post("/ide/api/chat", async (request:any, reply) => {
 });
 
 
-app.get("/ide/api/dev/status", async (_request:any, reply:any) => { try{return reply.send(await v350PlatformStatus());}catch(error){return reply.code(500).send({error:error instanceof Error?error.message:String(error)});} });
-app.post("/ide/api/dev/chat", async (request:any, reply:any) => { try{return reply.send(await v350AskModel({message:String(request.body?.message||''),activeFile:request.body?.activeFile?String(request.body.activeFile):null,preferLocal:!!request.body?.preferLocal}));}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});} });
-app.post("/ide/api/dev/scan", async (_request:any, reply:any) => { try{return reply.send(await v350FullScan());}catch(error){return reply.code(500).send({error:error instanceof Error?error.message:String(error)});} });
-app.post("/ide/api/dev/preview", async (request:any, reply:any) => { try{return reply.send(await v350PreviewSet({url:String(request.body?.url||'')}));}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});} });
+registerDeveloperRoutes(app, {
+  platformStatus: v350PlatformStatus,
+  askModel: v350AskModel,
+  fullScan: v350FullScan,
+  previewSet: v350PreviewSet
+});
 
 registerAiControlRoutes(app, {
   controlStatus: v340ControlStatus,
