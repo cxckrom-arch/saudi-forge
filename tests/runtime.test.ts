@@ -12,6 +12,7 @@ import { createProjectContext } from '../src/project-context.js';
 import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { createProviderStore } from '../src/provider-store.js';
 import { createProviderService } from '../src/provider-service.js';
+import { createProviderReliabilityLedger } from '../src/provider-reliability-ledger.js';
 import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
 import { createSecretManager } from '../src/secret-manager.js';
@@ -221,6 +222,50 @@ test('adaptive routing classification and scoring stay deterministic',()=>{
   assert.equal(taskAffinity('custom','general'),70);
 });
 
+
+test('provider reliability ledger persists bounded events and computes honest metrics', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-provider-ledger-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  let clock = 2_000_000;
+  const ledger = createProviderReliabilityLedger({
+    directory: root,
+    now: () => clock,
+    maxEvents: 50
+  });
+
+  await ledger.record({ providerId: 'primary', provider: 'Primary', model: 'a', type: 'REQUEST_FAIL', error: '503 upstream' });
+  clock += 10;
+  await ledger.record({ providerId: 'primary', provider: 'Primary', model: 'a', type: 'CIRCUIT_OPEN' });
+  clock += 10;
+  await ledger.record({ providerId: 'backup', provider: 'Backup', model: 'b', type: 'REQUEST_PASS', latencyMs: 420, httpStatus: 200 });
+  clock += 10;
+  await ledger.record({ providerId: 'backup', provider: 'Backup', model: 'b', type: 'FAILOVER' });
+  clock += 10;
+  await ledger.record({ providerId: 'primary', provider: 'Primary', model: 'a', type: 'RECOVERY_PROBE_PASS' });
+  clock += 10;
+  await ledger.record({ providerId: 'primary', provider: 'Primary', model: 'a', type: 'REQUEST_PASS', latencyMs: 310, httpStatus: 200 });
+
+  const summary:any = await ledger.summary();
+  assert.equal(summary.status, 'READY');
+  assert.equal(summary.eventCount, 6);
+  const primary = summary.providers.find((x:any) => x.providerId === 'primary');
+  const backup = summary.providers.find((x:any) => x.providerId === 'backup');
+  assert.equal(primary.requests, 2);
+  assert.equal(primary.passes, 1);
+  assert.equal(primary.failures, 1);
+  assert.equal(primary.successRatePct, 50);
+  assert.equal(primary.circuitOpens, 1);
+  assert.equal(primary.recoveries, 1);
+  assert.equal(primary.avgLatencyMs, 310);
+  assert.equal(backup.successRatePct, 100);
+  assert.equal(backup.failovers, 1);
+
+  const reopened = createProviderReliabilityLedger({ directory: root, now: () => clock });
+  const persisted:any = await reopened.summary();
+  assert.equal(persisted.eventCount, 6);
+  assert.equal(persisted.providers.find((x:any) => x.providerId === 'primary').requests, 2);
+  assert.equal((await reopened.recent(2)).length, 2);
+});
 
 test('secret manager validates names and strips line breaks',async t=>{
   const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-secret-manager-'));
