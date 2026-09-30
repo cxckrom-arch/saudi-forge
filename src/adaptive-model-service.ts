@@ -31,6 +31,7 @@ export function createAdaptiveModelService(options: {
   modelsUrl: (profile: ProviderProfile) => string;
   extractModels: (profile: ProviderProfile, data: any) => string[];
   classifyTask: (task: string) => TaskClass;
+  reliabilitySummary?: () => Promise<any>;
   env?: NodeJS.ProcessEnv;
 }) {
   const {
@@ -41,6 +42,7 @@ export function createAdaptiveModelService(options: {
     modelsUrl,
     extractModels,
     classifyTask,
+    reliabilitySummary,
     env = process.env
   } = options;
 
@@ -175,18 +177,29 @@ export function createAdaptiveModelService(options: {
     const taskClass = classifyTask(input.task);
     const benchmark: any = await providerBenchmark({ runs: 1 });
     const healthById = new Map((benchmark.rows || []).map((x: any) => [x.providerId, x]));
+    let historical:any = { providers: [] };
+    try { historical = reliabilitySummary ? await reliabilitySummary() : { providers: [] }; } catch {}
+    const historicalById = new Map((historical.providers || []).map((x: any) => [x.providerId, x]));
 
     const candidates = profiles
       .map((profile) => {
         const health: any = healthById.get(profile.id) || {};
+        const history: any = historicalById.get(profile.id) || {};
         const affinity = taskAffinity(profile.kind, taskClass);
         const localBonus =
           input.preferLocal && (profile.kind === "ollama" || profile.kind === "gpt4all") ? 8 : 0;
         const priorityScore = Math.max(0, 100 - Math.min(100, profile.priority));
+        const historyRequests = Number(history.requests || 0);
+        const historySuccess = Number.isFinite(Number(history.successRatePct)) ? Number(history.successRatePct) : 50;
+        const historyLatency = Number(history.avgLatencyMs || 0);
+        const historyLatencyScore = historyLatency > 0 ? latencyScore(historyLatency) : 50;
+        const evidenceWeight = Math.min(1, historyRequests / 10);
+        const historicalScore = Math.round((historySuccess * 0.75 + historyLatencyScore * 0.25) * evidenceWeight + 50 * (1 - evidenceWeight));
         const score = Math.round(
-          Number(health.reliabilityScore || 0) * 0.45 +
-          affinity * 0.35 +
-          priorityScore * 0.2 +
+          Number(health.reliabilityScore || 0) * 0.35 +
+          historicalScore * 0.25 +
+          affinity * 0.25 +
+          priorityScore * 0.15 +
           localBonus
         );
 
@@ -198,6 +211,10 @@ export function createAdaptiveModelService(options: {
           healthy: Number(health.availabilityPct || 0) > 0,
           reliabilityScore: Number(health.reliabilityScore || 0),
           avgLatencyMs: Number(health.avgLatencyMs || 0),
+          historicalRequests: historyRequests,
+          historicalSuccessRatePct: historyRequests ? historySuccess : null,
+          historicalAvgLatencyMs: historyLatency || null,
+          historicalScore,
           taskAffinity: affinity,
           priority: profile.priority,
           score
@@ -215,7 +232,7 @@ export function createAdaptiveModelService(options: {
       selected,
       candidates: candidates.slice(0, Math.max(1, Math.min(10, Number(input.maxCandidates || 5)))),
       reason: selected
-        ? "ranked by health/reliability, task affinity, provider priority and optional local preference"
+        ? "ranked by live health, persisted reliability evidence, task affinity, provider priority and optional local preference"
         : "no enabled provider"
     });
   }
@@ -249,7 +266,8 @@ export function createAdaptiveModelService(options: {
       explanation: routed.selected
         ? [
             "provider passed live availability check",
-            "score combines historical/live reliability",
+            "score combines live health with persisted request reliability and latency",
+            "historical evidence is confidence-weighted so small samples cannot dominate",
             "provider affinity matches task class",
             "provider priority contributes but cannot override an unhealthy endpoint"
           ]
@@ -296,6 +314,7 @@ export function createAdaptiveModelService(options: {
       capabilities: [
         "provider benchmark",
         "reliability history",
+        "persistent reliability-aware routing",
         "smart route",
         "adaptive fallback",
         "route explainability",
