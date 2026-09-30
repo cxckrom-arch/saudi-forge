@@ -11,6 +11,8 @@ import { resolveCommand } from '../src/process-command.js';
 import { createProjectContext } from '../src/project-context.js';
 import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { createProviderStore } from '../src/provider-store.js';
+import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
+import { classifyTask } from '../src/provider-routing.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -161,4 +163,19 @@ test('provider store sanitizes credential headers and builds model URLs',async t
   assert.equal(store.modelsUrl(profile),'https://example.test/v1/models');
   assert.equal(store.modelsUrl({...profile,kind:'ollama',baseUrl:'http://127.0.0.1:11434/'}),'http://127.0.0.1:11434/api/tags');
   assert.equal(store.modelsUrl({...profile,kind:'gemini',baseUrl:'https://generativelanguage.googleapis.com/v1beta/openai/'}),'https://generativelanguage.googleapis.com/v1beta/openai/models');
+});
+
+
+test('adaptive routing classification and scoring stay deterministic',()=>{
+  assert.equal(classifyTask('fix TypeScript component bug'),'coding');
+  assert.equal(classifyTask('design responsive RTL dashboard'),'design');
+  assert.equal(classifyTask('plan schema migration architecture'),'planning');
+  assert.equal(classifyTask('summarize this text'),'general');
+
+  assert.equal(latencyScore(250),100);
+  assert.equal(latencyScore(700),90);
+  assert.equal(latencyScore(1500),75);
+  assert.equal(latencyScore(7000),15);
+  assert.ok(taskAffinity('gemini','planning')>taskAffinity('gpt4all','planning'));
+  assert.equal(taskAffinity('custom','general'),70);
 });
