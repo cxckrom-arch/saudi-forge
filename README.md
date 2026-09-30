@@ -113,3 +113,5 @@ Current release line: **45.0.0**
 ### Modular MCP registration architecture
 
 V45 hardening removed direct `server.registerTool(...)` declarations from `server.ts`. Tool families are registered through dedicated modules, including core project tools, precision execution, Prompt Studio, visual design, v3.x runtime families, capability expansion, v16–v20, v21–v25, v26–v31, and model-control tools. A regression test fails if inline MCP registrations return to the composition root.
+
+<!-- vercel-redeploy: build-fix-2026-09-30 -->
