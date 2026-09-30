@@ -25,6 +25,8 @@ import { registerPrecisionExecutionTools } from '../src/precision-execution-tool
 import { registerPromptStudioTools } from '../src/prompt-studio-tools.js';
 import { registerVisualDesignerTools } from '../src/visual-designer-tools.js';
 import { registerV3CoreTools } from '../src/v3-core-tools.js';
+import { registerV31BrowserTools } from '../src/v31-browser-tools.js';
+import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -499,4 +501,27 @@ test('extracted v3 core registration preserves orchestration and gate catalog', 
     'master_orchestrator','project_memory','requirement_traceability',
     'browser_test','screenshot_visual_inspector','release_gate_v3'
   ]);
+});
+
+test('extracted v3.1 browser and v3.2 repair catalogs remain stable', () => {
+  const browserNames:string[] = [];
+  registerV31BrowserTools({ registerTool: (name:string) => { browserNames.push(name); } } as any, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    runLiveBrowserVision: async () => ({}),
+    readLatestLiveBrowserReport: async () => null
+  });
+  assert.deepEqual(browserNames, ['live_browser_vision','live_browser_report','release_gate_v31']);
+
+  const repairNames:string[] = [];
+  registerV32RepairTools({ registerTool: (name:string) => { repairNames.push(name); } } as any, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    collectRepairFindings: async () => ({ findings: [], gates: {} }),
+    repairFingerprint: () => '00000000',
+    readRepairState: async () => null,
+    writeRepairState: async () => {},
+    locateLikelyFiles: async () => []
+  });
+  assert.deepEqual(repairNames, ['autonomous_repair_begin','autonomous_repair_verify','autonomous_repair_status','repair_source_locator']);
 });
