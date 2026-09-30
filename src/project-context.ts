@@ -3,7 +3,7 @@ import path from "node:path";
 
 export const MAX_FILE_SIZE = 1024 * 1024;
 
-const IGNORED_DIRS = new Set([
+export const IGNORED_DIRS = new Set([
   "node_modules",
   ".git",
   "dist",
@@ -18,7 +18,7 @@ const IGNORED_DIRS = new Set([
   ".krom-secrets"
 ]);
 
-const TEXT_EXTENSIONS = new Set([
+export const TEXT_EXTENSIONS = new Set([
   ".ts", ".tsx", ".js", ".jsx",
   ".mjs", ".cjs",
   ".json",
