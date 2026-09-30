@@ -21,6 +21,7 @@ import { renderDeveloperPlatformHtml } from '../src/developer-platform-ui.js';
 import { registerModelControlTools } from '../src/model-control-tools.js';
 import { createDeveloperPlatformService } from '../src/developer-platform-service.js';
 import { registerCoreProjectTools } from '../src/core-project-tools.js';
+import { registerPrecisionExecutionTools } from '../src/precision-execution-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -419,5 +420,25 @@ test('extracted core project registration preserves the 14-tool catalog', () => 
   assert.deepEqual(names, [
     'inspect_project','list_files','read_file','search_code','write_file','patch_file','run_command',
     'run_build','run_tests','run_lint','run_typecheck','git_status','git_diff','verification_gate'
+  ]);
+});
+
+test('extracted precision execution registration preserves the four-tool catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerPrecisionExecutionTools(server, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    extractRequirementsFromPrompt: () => [],
+    precisionProtocol: () => '',
+    readExecutionManifest: async () => null,
+    writeExecutionManifest: async () => {},
+    runPackageScript: async () => ({ available: false, status: 'SKIPPED' }),
+    recordCommandEvidence: async () => {},
+    executionDir: '.krom-execution',
+    executionFile: 'current-task.json'
+  });
+  assert.deepEqual(names, [
+    'start_precise_execution','update_execution_requirement','execution_status','execution_audit'
   ]);
 });
