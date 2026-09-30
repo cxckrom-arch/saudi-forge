@@ -20,6 +20,7 @@ import { APP_VERSION, APP_DISPLAY_VERSION } from '../src/release-info.js';
 import { renderDeveloperPlatformHtml } from '../src/developer-platform-ui.js';
 import { registerModelControlTools } from '../src/model-control-tools.js';
 import { createDeveloperPlatformService } from '../src/developer-platform-service.js';
+import { registerCoreProjectTools } from '../src/core-project-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -393,4 +394,30 @@ test('extracted developer platform service preserves status and preview contract
   assert.equal(saved.version, APP_VERSION);
   assert.equal(saved.status, 'SAVED');
   assert.equal(previewState.url, 'http://127.0.0.1:5173');
+});
+
+test('extracted core project registration preserves the 14-tool catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerCoreProjectTools(server, {
+    projectRoot: process.cwd(),
+    maxFileSize: 1024 * 1024,
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    safePath: (p:string) => p,
+    exists: async () => true,
+    backupFile: async () => null,
+    walkProject: async () => [],
+    readPackageJson: async () => ({}),
+    detectPackageManager: async () => 'npm',
+    isTextFile: () => true,
+    executeProgram: async () => ({ success: true }),
+    runPackageScript: async () => ({ available: false, status: 'SKIPPED' }),
+    recordChangedFile: async () => {},
+    recordCommandEvidence: async () => {}
+  });
+  assert.deepEqual(names, [
+    'inspect_project','list_files','read_file','search_code','write_file','patch_file','run_command',
+    'run_build','run_tests','run_lint','run_typecheck','git_status','git_diff','verification_gate'
+  ]);
 });
