@@ -36,6 +36,7 @@ import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
+import { createAutopilotService } from '../src/autopilot-service.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
 import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { registerV4ProductTools } from '../src/v4-product-tools.js';
@@ -899,4 +900,28 @@ test('v3.7 autopilot start uses the injected state bindings', async () => {
   assert.ok(!response.isError);
   assert.equal(written?.status, 'ACTIVE');
   assert.equal(written?.checkpointId, 'CP-1');
+});
+
+test('autopilot service persists state, checkpoints files, and enforces phase rules', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-autopilot-service-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  await fs.writeFile(path.join(root,'a.txt'),'before','utf8');
+  const stateRoot=path.join(root,'.krom');
+  const service=createAutopilotService({
+    projectRoot:root,
+    maxFileSize:1024*1024,
+    kromStatePath:async(file:string)=>{const p=path.join(stateRoot,file);await fs.mkdir(path.dirname(p),{recursive:true});return p;},
+    safePath:(rel:string)=>path.join(root,rel),
+    walkProject:async()=>[path.join(root,'a.txt')],
+    isTextFile:()=>true
+  });
+  const state:any={id:'AP-1',task:'test',startedAt:new Date().toISOString(),updatedAt:'',phase:'execute',qualityScore:0,iteration:0,maxIterations:2,blockers:[],evidence:[],status:'ACTIVE'};
+  await service.writeState(state);
+  assert.equal((await service.readState())?.id,'AP-1');
+  const cp=await service.createCheckpoint('before');
+  await fs.writeFile(path.join(root,'a.txt'),'after','utf8');
+  await service.restoreCheckpoint(cp.id);
+  assert.equal(await fs.readFile(path.join(root,'a.txt'),'utf8'),'before');
+  assert.equal(service.nextPhase({...state,iteration:2},40,['x']),'blocked');
+  assert.equal(service.nextPhase(state,95,[]),'release');
 });
