@@ -1,3 +1,4 @@
+import type { RepairCycleState } from "./repair-service.js";
 import * as z from "zod/v4";
 
 type ResultFn = (text: string) => any;
@@ -13,6 +14,7 @@ export function registerV32RepairTools(
     readRepairState: () => Promise<any>;
     writeRepairState: (state: any) => Promise<void>;
     locateLikelyFiles: (...args: any[]) => Promise<any>;
+    readExecutionManifest: () => Promise<any>;
   }
 ) {
   const {
@@ -22,7 +24,8 @@ export function registerV32RepairTools(
     repairFingerprint,
     readRepairState,
     writeRepairState,
-    locateLikelyFiles
+    locateLikelyFiles,
+    readExecutionManifest
   } = deps;
 
   // =========================================================
