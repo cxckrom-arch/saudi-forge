@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-09-30T09:50:01.529Z",
+  "version": "33.0.0",
+  "status": "READY",
+  "providers": [
+    {
+      "providerId": "ollama-local",
+      "samples": 5,
+      "availabilityPct": 100,
+      "avgLatencyMs": 39,
+      "reliabilityScore": 100
+    },
+    {
+      "providerId": "gemini-google",
+      "samples": 4,
+      "availabilityPct": 100,
+      "avgLatencyMs": 332,
+      "reliabilityScore": 98
+    }
+  ]
+}

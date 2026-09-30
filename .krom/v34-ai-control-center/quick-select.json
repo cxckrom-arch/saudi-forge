@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-09-26T04:07:05.920Z",
+  "version": "34.1.0",
+  "status": "SAVED",
+  "providerId": "ollama-local",
+  "model": "qwen3:8b",
+  "taskClass": null,
+  "selected": {
+    "generatedAt": "2026-09-26T04:07:05.918Z",
+    "version": "32.1.0",
+    "status": "SAVED",
+    "providerId": "ollama-local",
+    "model": "qwen3:8b"
+  }
+}

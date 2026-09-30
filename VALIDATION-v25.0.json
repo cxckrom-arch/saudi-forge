@@ -1,0 +1,13 @@
+{
+  "version": "25.0.0",
+  "new_tools": 12,
+  "unique_new_tools": 12,
+  "duplicates": [],
+  "expected_runtime_total": 5117,
+  "typescript_v25_new_errors": 0,
+  "baseline_external_dependency_errors": [
+    "@modelcontextprotocol/*",
+    "zod/v4",
+    "@types/node"
+  ]
+}

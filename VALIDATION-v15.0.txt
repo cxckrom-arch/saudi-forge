@@ -1,0 +1,15 @@
+KROM FORGE DEV v15.0 VALIDATION
+================================
+Prior registered MCP tools (v14): 1000
+New v15 generated MCP tools:      4000
+Total target/runtime tools:       5000
+Unique new v15 tool names:        4000
+Expected duplicate new names:     0
+Cross-version collision strategy: v15 suffix on all 4000 new tools
+Registry model:                   40 domains x 100 operations
+Reports:                          .krom/v15-5000-tools/
+
+TypeScript structural check:
+- No v15-specific syntax/type errors detected before dependency resolution.
+- Existing package snapshot is missing MCP SDK, Zod and Node typings.
+- Existing module configuration also reports top-level-await/CommonJS mismatch.

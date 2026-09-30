@@ -1,0 +1,13 @@
+{
+  "version": "31.0.0",
+  "kromHome": "C:\\KSA-FORGE",
+  "projectRoot": "C:\\KSA-FORGE",
+  "port": 3001,
+  "idePath": "/ide",
+  "mcpPath": "/mcp",
+  "bootstrap": {
+    "autoRepairMissingRuntime": true,
+    "overwriteExistingConfig": false,
+    "killOccupiedPorts": false
+  }
+}

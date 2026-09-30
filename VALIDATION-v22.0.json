@@ -1,0 +1,25 @@
+{
+  "version": "22.0.0",
+  "new_v22_tools": 14,
+  "unique_new_v22_tools": 14,
+  "new_v22_duplicates": [],
+  "expected_runtime_total_from_v21_5067_plus_14": 5081,
+  "server_version_updated": true,
+  "tool_names": [
+    "quality_policy_init_v22",
+    "change_risk_classify_v22",
+    "approval_matrix_v22",
+    "policy_exception_request_v22",
+    "exception_expiry_audit_v22",
+    "evidence_policy_check_v22",
+    "compliance_matrix_v22",
+    "policy_evaluate_v22",
+    "change_freeze_check_v22",
+    "policy_diff_v22",
+    "governance_gate_v22",
+    "governed_release_decision_v22",
+    "governance_report_v22",
+    "governance_status_v22"
+  ],
+  "typescript_note": "v22-specific errors cleared; remaining compile diagnostics are inherited missing external Node/MCP typings and existing module/top-level-await configuration."
+}

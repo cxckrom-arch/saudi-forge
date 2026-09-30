@@ -1,0 +1,8 @@
+{
+  "version": "29.0.0",
+  "new_tools": 10,
+  "new_tool_names_unique": true,
+  "direct_register_tool_duplicates": 0,
+  "typescript_v29_specific_errors": 0,
+  "artifact_directory": ".krom/v29-product-journey/"
+}

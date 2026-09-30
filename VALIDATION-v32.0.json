@@ -1,0 +1,14 @@
+{
+  "version": "32.0.0",
+  "newTools": 9,
+  "newUnique": 9,
+  "newDuplicates": [],
+  "directRegistrationCount": 203,
+  "directRegistrationUnique": 203,
+  "kromHome": "C:\\KROM-FORGE",
+  "tscResult": "Only TS2688 missing Node type definitions before dependency install",
+  "notes": [
+    "Provider profiles never persist API key values.",
+    "Health checks use model-list endpoints only."
+  ]
+}

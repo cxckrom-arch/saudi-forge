@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-30T09:50:02.835Z",
+  "status": "PASS",
+  "evidence": [
+    "HTTP/MCP catalog parity; invalid tools/arguments rejected; untrusted browser origin blocked",
+    "MCP-created automation runs real typecheck + tests; concurrent dispatch returns 409",
+    "Full scan correctly reports unavailable Git and skipped lint as REVIEW",
+    "Failed Git command isError propagates through MCP",
+    "Both UI pages return 200 and their embedded scripts parse"
+  ]
+}

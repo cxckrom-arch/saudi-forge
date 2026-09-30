@@ -1,0 +1,85 @@
+{
+  "version": "33.0.0",
+  "updatedAt": "2026-09-26T04:56:09.288Z",
+  "history": [
+    {
+      "at": "2026-09-26T04:12:22.906Z",
+      "rows": [
+        {
+          "providerId": "ollama-local",
+          "availabilityPct": 100,
+          "avgLatencyMs": 39,
+          "reliabilityScore": 100
+        }
+      ]
+    },
+    {
+      "at": "2026-09-26T04:54:21.797Z",
+      "rows": [
+        {
+          "providerId": "ollama-local",
+          "availabilityPct": 100,
+          "avgLatencyMs": 43,
+          "reliabilityScore": 100
+        },
+        {
+          "providerId": "gemini-google",
+          "availabilityPct": 100,
+          "avgLatencyMs": 337,
+          "reliabilityScore": 97
+        }
+      ]
+    },
+    {
+      "at": "2026-09-26T04:55:00.292Z",
+      "rows": [
+        {
+          "providerId": "ollama-local",
+          "availabilityPct": 100,
+          "avgLatencyMs": 38,
+          "reliabilityScore": 100
+        },
+        {
+          "providerId": "gemini-google",
+          "availabilityPct": 100,
+          "avgLatencyMs": 331,
+          "reliabilityScore": 97
+        }
+      ]
+    },
+    {
+      "at": "2026-09-26T04:55:30.091Z",
+      "rows": [
+        {
+          "providerId": "ollama-local",
+          "availabilityPct": 100,
+          "avgLatencyMs": 35,
+          "reliabilityScore": 100
+        },
+        {
+          "providerId": "gemini-google",
+          "availabilityPct": 100,
+          "avgLatencyMs": 366,
+          "reliabilityScore": 97
+        }
+      ]
+    },
+    {
+      "at": "2026-09-26T04:56:09.287Z",
+      "rows": [
+        {
+          "providerId": "ollama-local",
+          "availabilityPct": 100,
+          "avgLatencyMs": 42,
+          "reliabilityScore": 100
+        },
+        {
+          "providerId": "gemini-google",
+          "availabilityPct": 100,
+          "avgLatencyMs": 294,
+          "reliabilityScore": 100
+        }
+      ]
+    }
+  ]
+}

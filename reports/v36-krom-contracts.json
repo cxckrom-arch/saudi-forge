@@ -1,0 +1,68 @@
+{
+  "catalogVersion": "36.0.0",
+  "toolCount": 10,
+  "tools": [
+    {
+      "name": "inspect_project",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "list_files",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "search_code",
+      "schemaVersion": "36",
+      "inputs": [
+        "query"
+      ],
+      "outputs": []
+    },
+    {
+      "name": "run_typecheck",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "run_tests",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "run_lint",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "run_build",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "git_status",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "full_project_scan_v35",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    },
+    {
+      "name": "developer_platform_status_v35",
+      "schemaVersion": "36",
+      "inputs": [],
+      "outputs": []
+    }
+  ]
+}

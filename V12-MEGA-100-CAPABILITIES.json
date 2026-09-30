@@ -1,0 +1,619 @@
+{
+  "version": "12.0.0",
+  "name": "KROM FORGE DEV v12.0 — MEGA 100 Expansion",
+  "capability_count": 100,
+  "categories": {
+    "architecture": 10,
+    "code_quality": 10,
+    "ui_ux": 10,
+    "testing": 10,
+    "api_data": 10,
+    "security": 10,
+    "performance": 10,
+    "devops": 10,
+    "product": 10,
+    "ai_agent": 10
+  },
+  "capabilities": [
+    {
+      "id": "domain_boundary_mapper",
+      "title": "Domain Boundary Mapper",
+      "category": "architecture",
+      "description": "Map domain boundaries and cross-domain imports"
+    },
+    {
+      "id": "circular_dependency_radar",
+      "title": "Circular Dependency Radar",
+      "category": "architecture",
+      "description": "Identify import patterns that may form circular dependencies"
+    },
+    {
+      "id": "coupling_heatmap",
+      "title": "Coupling Heatmap",
+      "category": "architecture",
+      "description": "Rank highly connected source files and shared modules"
+    },
+    {
+      "id": "module_ownership_map",
+      "title": "Module Ownership Map",
+      "category": "architecture",
+      "description": "Produce ownership hints for major project modules"
+    },
+    {
+      "id": "route_dependency_map",
+      "title": "Route Dependency Map",
+      "category": "architecture",
+      "description": "Map route/page files to their direct dependencies"
+    },
+    {
+      "id": "state_flow_mapper",
+      "title": "State Flow Mapper",
+      "category": "architecture",
+      "description": "Inventory state-management patterns and stateful hotspots"
+    },
+    {
+      "id": "event_flow_mapper",
+      "title": "Event Flow Mapper",
+      "category": "architecture",
+      "description": "Inventory event handlers, emitters and messaging paths"
+    },
+    {
+      "id": "config_drift_detector",
+      "title": "Config Drift Detector",
+      "category": "architecture",
+      "description": "Compare configuration surfaces and detect duplicated settings"
+    },
+    {
+      "id": "architecture_decision_recorder",
+      "title": "Architecture Decision Recorder",
+      "category": "architecture",
+      "description": "Generate ADR candidates from project structure and recent decisions"
+    },
+    {
+      "id": "shared_core_guard",
+      "title": "Shared Core Guard",
+      "category": "architecture",
+      "description": "Identify central shared files whose changes need stricter impact analysis"
+    },
+    {
+      "id": "duplicate_logic_detector",
+      "title": "Duplicate Logic Detector",
+      "category": "code_quality",
+      "description": "Find repeated code signatures and duplicated logic candidates"
+    },
+    {
+      "id": "complexity_radar",
+      "title": "Complexity Radar",
+      "category": "code_quality",
+      "description": "Locate files with dense branching and complexity indicators"
+    },
+    {
+      "id": "function_size_auditor",
+      "title": "Function Size Auditor",
+      "category": "code_quality",
+      "description": "Flag source files likely to contain oversized functions"
+    },
+    {
+      "id": "naming_consistency_auditor",
+      "title": "Naming Consistency Auditor",
+      "category": "code_quality",
+      "description": "Review common identifier and file naming consistency"
+    },
+    {
+      "id": "error_handling_auditor",
+      "title": "Error Handling Auditor",
+      "category": "code_quality",
+      "description": "Review try/catch, error boundaries and user-facing error paths"
+    },
+    {
+      "id": "async_safety_auditor",
+      "title": "Async Safety Auditor",
+      "category": "code_quality",
+      "description": "Review async/await, promises and cleanup-risk patterns"
+    },
+    {
+      "id": "type_safety_auditor",
+      "title": "Type Safety Auditor",
+      "category": "code_quality",
+      "description": "Locate weak typing patterns and unsafe casts"
+    },
+    {
+      "id": "null_safety_auditor",
+      "title": "Null Safety Auditor",
+      "category": "code_quality",
+      "description": "Locate nullability and optional access hotspots"
+    },
+    {
+      "id": "import_hygiene_auditor",
+      "title": "Import Hygiene Auditor",
+      "category": "code_quality",
+      "description": "Review broad, deep and duplicate import patterns"
+    },
+    {
+      "id": "refactor_opportunity_finder",
+      "title": "Refactor Opportunity Finder",
+      "category": "code_quality",
+      "description": "Find high-value refactor candidates from size and coupling signals"
+    },
+    {
+      "id": "component_reuse_auditor",
+      "title": "Component Reuse Auditor",
+      "category": "ui_ux",
+      "description": "Identify reusable UI primitives and duplication candidates"
+    },
+    {
+      "id": "design_consistency_auditor",
+      "title": "Design Consistency Auditor",
+      "category": "ui_ux",
+      "description": "Review style-token and utility-class consistency"
+    },
+    {
+      "id": "responsive_layout_auditor",
+      "title": "Responsive Layout Auditor",
+      "category": "ui_ux",
+      "description": "Review responsive breakpoints and overflow-risk patterns"
+    },
+    {
+      "id": "rtl_layout_auditor",
+      "title": "RTL Layout Auditor",
+      "category": "ui_ux",
+      "description": "Review RTL/LTR readiness and directional assumptions"
+    },
+    {
+      "id": "accessibility_surface_auditor",
+      "title": "Accessibility Surface Auditor",
+      "category": "ui_ux",
+      "description": "Review semantic labels, focus and image alt coverage"
+    },
+    {
+      "id": "form_experience_auditor",
+      "title": "Form Experience Auditor",
+      "category": "ui_ux",
+      "description": "Review form validation, labels and submission states"
+    },
+    {
+      "id": "data_table_experience_auditor",
+      "title": "Data Table Experience Auditor",
+      "category": "ui_ux",
+      "description": "Review table density, paging, sorting and responsive handling"
+    },
+    {
+      "id": "loading_state_auditor",
+      "title": "Loading State Auditor",
+      "category": "ui_ux",
+      "description": "Review loading/skeleton/progress coverage"
+    },
+    {
+      "id": "empty_error_state_auditor",
+      "title": "Empty & Error State Auditor",
+      "category": "ui_ux",
+      "description": "Review empty, error and retry user experiences"
+    },
+    {
+      "id": "navigation_experience_auditor",
+      "title": "Navigation Experience Auditor",
+      "category": "ui_ux",
+      "description": "Review sidebar, breadcrumb and route navigation consistency"
+    },
+    {
+      "id": "unit_test_gap_analyzer",
+      "title": "Unit Test Gap Analyzer",
+      "category": "testing",
+      "description": "Compare source surfaces against unit-test presence"
+    },
+    {
+      "id": "integration_test_gap_analyzer",
+      "title": "Integration Test Gap Analyzer",
+      "category": "testing",
+      "description": "Identify integration boundaries lacking explicit tests"
+    },
+    {
+      "id": "e2e_test_gap_analyzer",
+      "title": "E2E Test Gap Analyzer",
+      "category": "testing",
+      "description": "Review critical routes and flows against E2E coverage"
+    },
+    {
+      "id": "flaky_test_risk_auditor",
+      "title": "Flaky Test Risk Auditor",
+      "category": "testing",
+      "description": "Locate timing and nondeterminism patterns in tests"
+    },
+    {
+      "id": "fixture_quality_auditor",
+      "title": "Fixture Quality Auditor",
+      "category": "testing",
+      "description": "Review test fixture organization and reuse"
+    },
+    {
+      "id": "test_data_guard",
+      "title": "Test Data Guard",
+      "category": "testing",
+      "description": "Review test-data isolation and production-data leakage risks"
+    },
+    {
+      "id": "boundary_case_generator",
+      "title": "Boundary Case Generator",
+      "category": "testing",
+      "description": "Generate boundary and negative-case targets from validation surfaces"
+    },
+    {
+      "id": "permission_test_matrix",
+      "title": "Permission Test Matrix",
+      "category": "testing",
+      "description": "Map permission-sensitive surfaces to required tests"
+    },
+    {
+      "id": "regression_matrix_builder",
+      "title": "Regression Matrix Builder",
+      "category": "testing",
+      "description": "Build regression targets from shared modules and changed surfaces"
+    },
+    {
+      "id": "coverage_strategy_planner",
+      "title": "Coverage Strategy Planner",
+      "category": "testing",
+      "description": "Produce a pragmatic unit/integration/E2E coverage plan"
+    },
+    {
+      "id": "api_contract_auditor",
+      "title": "API Contract Auditor",
+      "category": "api_data",
+      "description": "Review API request/response and client/server contract surfaces"
+    },
+    {
+      "id": "endpoint_inventory_builder",
+      "title": "Endpoint Inventory Builder",
+      "category": "api_data",
+      "description": "Inventory API route and endpoint definitions"
+    },
+    {
+      "id": "input_validation_auditor",
+      "title": "Input Validation Auditor",
+      "category": "api_data",
+      "description": "Review server/client validation coverage"
+    },
+    {
+      "id": "auth_boundary_auditor",
+      "title": "Auth Boundary Auditor",
+      "category": "api_data",
+      "description": "Review authentication boundaries around sensitive endpoints"
+    },
+    {
+      "id": "rate_limit_readiness_auditor",
+      "title": "Rate Limit Readiness Auditor",
+      "category": "api_data",
+      "description": "Review externally exposed endpoints for rate-limit readiness"
+    },
+    {
+      "id": "cache_strategy_auditor",
+      "title": "Cache Strategy Auditor",
+      "category": "api_data",
+      "description": "Review cache usage and invalidation signals"
+    },
+    {
+      "id": "query_efficiency_auditor",
+      "title": "Query Efficiency Auditor",
+      "category": "api_data",
+      "description": "Review query shapes and unbounded data access"
+    },
+    {
+      "id": "index_readiness_auditor",
+      "title": "Index Readiness Auditor",
+      "category": "api_data",
+      "description": "Review schema/migrations for likely indexing needs"
+    },
+    {
+      "id": "migration_safety_auditor",
+      "title": "Migration Safety Auditor",
+      "category": "api_data",
+      "description": "Review migrations for destructive or risky operations"
+    },
+    {
+      "id": "rls_policy_auditor",
+      "title": "RLS Policy Auditor",
+      "category": "api_data",
+      "description": "Review Supabase/Postgres RLS policy surfaces"
+    },
+    {
+      "id": "secret_exposure_auditor",
+      "title": "Secret Exposure Auditor",
+      "category": "security",
+      "description": "Locate secret-like assignments without revealing values"
+    },
+    {
+      "id": "xss_surface_auditor",
+      "title": "XSS Surface Auditor",
+      "category": "security",
+      "description": "Review raw HTML and unsafe rendering surfaces"
+    },
+    {
+      "id": "csrf_readiness_auditor",
+      "title": "CSRF Readiness Auditor",
+      "category": "security",
+      "description": "Review state-changing web endpoints for CSRF posture"
+    },
+    {
+      "id": "injection_surface_auditor",
+      "title": "Injection Surface Auditor",
+      "category": "security",
+      "description": "Review dynamic SQL/command construction surfaces"
+    },
+    {
+      "id": "file_upload_security_auditor",
+      "title": "File Upload Security Auditor",
+      "category": "security",
+      "description": "Review file validation, size and MIME restrictions"
+    },
+    {
+      "id": "authorization_auditor",
+      "title": "Authorization Auditor",
+      "category": "security",
+      "description": "Review permission checks around sensitive actions"
+    },
+    {
+      "id": "session_security_auditor",
+      "title": "Session Security Auditor",
+      "category": "security",
+      "description": "Review session/cookie configuration surfaces"
+    },
+    {
+      "id": "cors_headers_auditor",
+      "title": "CORS & Headers Auditor",
+      "category": "security",
+      "description": "Review CORS and HTTP security header configuration"
+    },
+    {
+      "id": "audit_log_coverage_auditor",
+      "title": "Audit Log Coverage Auditor",
+      "category": "security",
+      "description": "Review whether sensitive mutations generate audit evidence"
+    },
+    {
+      "id": "supply_chain_guard",
+      "title": "Supply Chain Guard",
+      "category": "security",
+      "description": "Review package and install-script risk indicators"
+    },
+    {
+      "id": "bundle_weight_auditor",
+      "title": "Bundle Weight Auditor",
+      "category": "performance",
+      "description": "Review bundle-heavy imports and large frontend files"
+    },
+    {
+      "id": "lazy_loading_auditor",
+      "title": "Lazy Loading Auditor",
+      "category": "performance",
+      "description": "Review code splitting and lazy route/component opportunities"
+    },
+    {
+      "id": "render_efficiency_auditor",
+      "title": "Render Efficiency Auditor",
+      "category": "performance",
+      "description": "Review React render hotspots and derived state patterns"
+    },
+    {
+      "id": "memoization_auditor",
+      "title": "Memoization Auditor",
+      "category": "performance",
+      "description": "Review expensive computation and memoization opportunities"
+    },
+    {
+      "id": "network_request_auditor",
+      "title": "Network Request Auditor",
+      "category": "performance",
+      "description": "Review request duplication, polling and waterfall risks"
+    },
+    {
+      "id": "image_asset_auditor",
+      "title": "Image Asset Auditor",
+      "category": "performance",
+      "description": "Review large/unoptimized image references and loading hints"
+    },
+    {
+      "id": "database_performance_auditor",
+      "title": "Database Performance Auditor",
+      "category": "performance",
+      "description": "Review query/pagination/index patterns affecting DB performance"
+    },
+    {
+      "id": "pagination_auditor",
+      "title": "Pagination Auditor",
+      "category": "performance",
+      "description": "Review large-list pagination and infinite-load readiness"
+    },
+    {
+      "id": "cache_efficiency_auditor",
+      "title": "Cache Efficiency Auditor",
+      "category": "performance",
+      "description": "Review query and HTTP cache patterns"
+    },
+    {
+      "id": "memory_leak_risk_auditor",
+      "title": "Memory Leak Risk Auditor",
+      "category": "performance",
+      "description": "Review listeners, timers and cleanup patterns"
+    },
+    {
+      "id": "ci_typecheck_guard",
+      "title": "CI Typecheck Guard",
+      "category": "devops",
+      "description": "Review whether CI enforces type checking"
+    },
+    {
+      "id": "ci_test_guard",
+      "title": "CI Test Guard",
+      "category": "devops",
+      "description": "Review whether CI enforces test execution"
+    },
+    {
+      "id": "artifact_integrity_guard",
+      "title": "Artifact Integrity Guard",
+      "category": "devops",
+      "description": "Review build-artifact and checksum practices"
+    },
+    {
+      "id": "container_readiness_auditor",
+      "title": "Container Readiness Auditor",
+      "category": "devops",
+      "description": "Review Docker/container configuration surfaces"
+    },
+    {
+      "id": "environment_parity_auditor",
+      "title": "Environment Parity Auditor",
+      "category": "devops",
+      "description": "Review local/staging/production configuration parity"
+    },
+    {
+      "id": "release_process_auditor",
+      "title": "Release Process Auditor",
+      "category": "devops",
+      "description": "Review tagging, changelog and release automation"
+    },
+    {
+      "id": "deployment_health_auditor",
+      "title": "Deployment Health Auditor",
+      "category": "devops",
+      "description": "Review deployment health checks and readiness signals"
+    },
+    {
+      "id": "rollback_readiness_auditor",
+      "title": "Rollback Readiness Auditor",
+      "category": "devops",
+      "description": "Review rollback metadata and deployment reversibility"
+    },
+    {
+      "id": "observability_pipeline_auditor",
+      "title": "Observability Pipeline Auditor",
+      "category": "devops",
+      "description": "Review logs, metrics and tracing surfaces"
+    },
+    {
+      "id": "backup_restore_auditor",
+      "title": "Backup & Restore Auditor",
+      "category": "devops",
+      "description": "Review backup, restore and integrity verification surfaces"
+    },
+    {
+      "id": "feature_gap_analyzer",
+      "title": "Feature Gap Analyzer",
+      "category": "product",
+      "description": "Compare requested product surfaces to implementation evidence"
+    },
+    {
+      "id": "acceptance_criteria_auditor",
+      "title": "Acceptance Criteria Auditor",
+      "category": "product",
+      "description": "Review whether features have explicit verifiable completion criteria"
+    },
+    {
+      "id": "persona_flow_mapper",
+      "title": "Persona Flow Mapper",
+      "category": "product",
+      "description": "Map role/persona-specific product flows"
+    },
+    {
+      "id": "onboarding_flow_auditor",
+      "title": "Onboarding Flow Auditor",
+      "category": "product",
+      "description": "Review first-use, setup and empty-account experience"
+    },
+    {
+      "id": "product_empty_state_auditor",
+      "title": "Product Empty State Auditor",
+      "category": "product",
+      "description": "Review empty states for actionable next steps"
+    },
+    {
+      "id": "permission_matrix_builder",
+      "title": "Permission Matrix Builder",
+      "category": "product",
+      "description": "Build role-to-action matrix from permission signals"
+    },
+    {
+      "id": "notification_flow_auditor",
+      "title": "Notification Flow Auditor",
+      "category": "product",
+      "description": "Review notification triggers, channels and read state"
+    },
+    {
+      "id": "search_discovery_auditor",
+      "title": "Search & Discovery Auditor",
+      "category": "product",
+      "description": "Review global/local search and filtering capabilities"
+    },
+    {
+      "id": "export_reporting_auditor",
+      "title": "Export & Reporting Auditor",
+      "category": "product",
+      "description": "Review export, print and reporting capabilities"
+    },
+    {
+      "id": "localization_readiness_auditor",
+      "title": "Localization Readiness Auditor",
+      "category": "product",
+      "description": "Review i18n, RTL and hard-coded copy readiness"
+    },
+    {
+      "id": "prompt_quality_engine",
+      "title": "Prompt Quality Engine",
+      "category": "ai_agent",
+      "description": "Evaluate prompt structure, constraints and acceptance evidence"
+    },
+    {
+      "id": "tool_selection_auditor",
+      "title": "Tool Selection Auditor",
+      "category": "ai_agent",
+      "description": "Review whether agent tools map clearly to task types"
+    },
+    {
+      "id": "context_budget_planner",
+      "title": "Context Budget Planner",
+      "category": "ai_agent",
+      "description": "Plan focused context packs and prevent unnecessary context expansion"
+    },
+    {
+      "id": "model_routing_policy",
+      "title": "Model Routing Policy",
+      "category": "ai_agent",
+      "description": "Define routing policy by task complexity and modality"
+    },
+    {
+      "id": "hallucination_guard",
+      "title": "Hallucination Guard",
+      "category": "ai_agent",
+      "description": "Require evidence for claims about project state and test success"
+    },
+    {
+      "id": "evidence_gate_engine",
+      "title": "Evidence Gate Engine",
+      "category": "ai_agent",
+      "description": "Enforce evidence requirements before marking work complete"
+    },
+    {
+      "id": "agent_handoff_auditor",
+      "title": "Agent Handoff Auditor",
+      "category": "ai_agent",
+      "description": "Review task handoff contracts between specialized agents"
+    },
+    {
+      "id": "retry_policy_engine",
+      "title": "Retry Policy Engine",
+      "category": "ai_agent",
+      "description": "Define bounded retry/escalation rules for failing automated tasks"
+    },
+    {
+      "id": "cost_guard_engine",
+      "title": "Cost Guard Engine",
+      "category": "ai_agent",
+      "description": "Track execution-cost metadata and prevent wasteful repeated analysis"
+    },
+    {
+      "id": "autonomy_guard_engine",
+      "title": "Autonomy Guard Engine",
+      "category": "ai_agent",
+      "description": "Define safe boundaries for autonomous execution and destructive actions"
+    }
+  ]
+}

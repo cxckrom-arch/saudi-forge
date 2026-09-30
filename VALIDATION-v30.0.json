@@ -1,0 +1,10 @@
+{
+  "version": "30.0.0",
+  "new_tools": 11,
+  "new_tools_unique": 11,
+  "direct_register_tool_count": 187,
+  "direct_register_tool_unique": 187,
+  "duplicate_direct_registrations": 0,
+  "typescript_new_v30_errors": 0,
+  "note": "Existing external dependency/module configuration issues from the recovered package may remain outside v30 additions."
+}

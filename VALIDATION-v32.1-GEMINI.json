@@ -1,0 +1,10 @@
+{
+  "version": "32.1.0",
+  "provider": "gemini-google",
+  "kind": "gemini",
+  "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+  "apiKeyEnv": "GEMINI_API_KEY",
+  "modelDiscovery": "/models",
+  "secretPersistence": false,
+  "status": "INTEGRATED"
+}

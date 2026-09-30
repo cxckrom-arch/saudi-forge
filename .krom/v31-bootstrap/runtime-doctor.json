@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-09-30T09:50:00.191Z",
+  "version": "31.0.0",
+  "status": "PASS",
+  "kromHome": "C:\\KSA-FORGE",
+  "projectRoot": "C:\\KSA-FORGE",
+  "port": 3001,
+  "checks": [
+    {
+      "name": "krom_home_exists",
+      "ok": true,
+      "detail": "C:\\KSA-FORGE"
+    },
+    {
+      "name": "project_root_exists",
+      "ok": true,
+      "detail": "C:\\KSA-FORGE"
+    },
+    {
+      "name": "server_ts",
+      "ok": true,
+      "detail": "server.ts"
+    },
+    {
+      "name": "start_script",
+      "ok": true,
+      "detail": "START-KROM-FORGE.ps1"
+    },
+    {
+      "name": "package_json",
+      "ok": true,
+      "detail": "package.json"
+    },
+    {
+      "name": "node",
+      "ok": true,
+      "detail": "v22.23.2"
+    },
+    {
+      "name": "npm",
+      "ok": true,
+      "detail": "10.9.8"
+    },
+    {
+      "name": "git",
+      "ok": true,
+      "detail": "git version 2.55.0.windows.3"
+    }
+  ],
+  "blockers": []
+}

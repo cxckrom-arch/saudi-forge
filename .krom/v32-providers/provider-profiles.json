@@ -1,0 +1,36 @@
+{
+  "version": "32.1.0",
+  "updatedAt": "2026-09-26T04:52:55.643Z",
+  "profiles": [
+    {
+      "id": "ollama-local",
+      "name": "Ollama Local",
+      "kind": "ollama",
+      "baseUrl": "http://127.0.0.1:11434",
+      "enabled": true,
+      "priority": 10,
+      "timeoutMs": 5000,
+      "defaultModel": "qwen3:8b"
+    },
+    {
+      "id": "gpt4all-local",
+      "name": "GPT4All Local",
+      "kind": "gpt4all",
+      "baseUrl": "http://127.0.0.1:4891",
+      "enabled": false,
+      "priority": 20,
+      "timeoutMs": 5000
+    },
+    {
+      "id": "gemini-google",
+      "name": "Google Gemini",
+      "kind": "gemini",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "apiKeyEnv": "GEMINI_API_KEY",
+      "enabled": true,
+      "priority": 30,
+      "timeoutMs": 12000,
+      "defaultModel": "models/gemini-3.8-flash"
+    }
+  ]
+}

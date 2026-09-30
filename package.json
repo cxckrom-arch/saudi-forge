@@ -1,0 +1,27 @@
+{
+  "name": "ksa-forge-dev",
+  "version": "36.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "start": "tsx server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "test:integration": "node tests/integration.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/fastify": "2.0.0",
+    "@modelcontextprotocol/node": "2.1.0",
+    "@modelcontextprotocol/server": "2.1.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.3",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

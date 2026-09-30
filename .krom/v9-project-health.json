@@ -1,0 +1,54 @@
+{
+  "at": "2026-09-30T09:50:01.232Z",
+  "score": 90,
+  "grade": "A",
+  "diagnostics": {
+    "status": "CLEAN",
+    "errorCount": 0,
+    "total": 0
+  },
+  "tests": {
+    "files": 1,
+    "scripts": 2
+  },
+  "api": {
+    "clients": 39,
+    "routes": 28
+  },
+  "database": {
+    "sqlFiles": 0,
+    "supabaseFiles": 0
+  },
+  "environment": {
+    "required": 3,
+    "missing": [
+      "KROM_HOME",
+      "KROM_PROJECT_ROOT",
+      "PORT"
+    ]
+  },
+  "dependencies": {
+    "packageManager": "npm",
+    "packageName": "ksa-forge-dev",
+    "version": "36.0.0",
+    "node": "v22.23.2",
+    "engines": {
+      "node": ">=20"
+    },
+    "dependencyCount": 7,
+    "locks": [
+      "package-lock.json"
+    ],
+    "concerns": [
+      {
+        "severity": "info",
+        "message": "Node engine: >=20"
+      }
+    ]
+  },
+  "git": {
+    "success": false,
+    "code": 128,
+    "status": "fatal: not a git repository (or any of the parent directories): .git\n"
+  }
+}

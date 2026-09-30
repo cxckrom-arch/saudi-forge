@@ -1,0 +1,14 @@
+{
+  "version": "34.0.0",
+  "structuralValidation": "PASS",
+  "v34Tools": 6,
+  "duplicateDirectRegistrations": 0,
+  "ideAiControlCenter": true,
+  "providerHealthEndpoint": true,
+  "modelSelectEndpoint": true,
+  "routePreviewEndpoint": true,
+  "hardcodedGeminiApiKey": false,
+  "legacyV10RuntimeBanner": false,
+  "typescriptValidation": "NOT_RUN_IN_CONTAINER_DEPENDENCIES_UNAVAILABLE",
+  "requiredLocalValidation": "npm install && npm run typecheck"
+}

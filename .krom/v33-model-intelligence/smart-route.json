@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-09-26T04:56:09.291Z",
+  "version": "33.0.0",
+  "status": "ROUTED",
+  "task": "افحص المشروع الحالي بالكامل. حلل بنية المشروع، ملفات التشغيل، الاعتمادات، الأخطاء البرمجية، مشاكل TypeScript، مشاكل الواجهة، الـAPI، الأمان، الأداء، Git، والنماذج والوكلاء. لا تعدل أي ملف الآن. أعطني تقريرًا مرتبًا بالمشاكل، درجة الخطورة، الملف المتأثر، والاقتراح المناسب لكل مشكلة.  وبعد ما يخلص الفحص، إذا تبغاه يصلح تلقائيًا أعطه: أصلح المشاكل المكتشفة واحدة تلو الأخرى. قبل كل تعديل نفذ impact analysis، وبعد كل مجموعة تغييرات شغّل typecheck وtests وbuild. لا تعتبر المهمة مكتملة إلا بعد نجاح التحقق النهائي وعرض الملفات التي تم تعديلها.",
+  "taskClass": "design",
+  "selected": {
+    "providerId": "gemini-google",
+    "provider": "Google Gemini",
+    "kind": "gemini",
+    "model": "models/gemini-3.8-flash",
+    "healthy": true,
+    "reliabilityScore": 100,
+    "avgLatencyMs": 294,
+    "taskAffinity": 93,
+    "priority": 30,
+    "score": 92
+  },
+  "candidates": [
+    {
+      "providerId": "gemini-google",
+      "provider": "Google Gemini",
+      "kind": "gemini",
+      "model": "models/gemini-3.8-flash",
+      "healthy": true,
+      "reliabilityScore": 100,
+      "avgLatencyMs": 294,
+      "taskAffinity": 93,
+      "priority": 30,
+      "score": 92
+    },
+    {
+      "providerId": "ollama-local",
+      "provider": "Ollama Local",
+      "kind": "ollama",
+      "model": "qwen3:8b",
+      "healthy": true,
+      "reliabilityScore": 100,
+      "avgLatencyMs": 42,
+      "taskAffinity": 65,
+      "priority": 10,
+      "score": 86
+    }
+  ],
+  "reason": "ranked by health/reliability, task affinity, provider priority and optional local preference"
+}

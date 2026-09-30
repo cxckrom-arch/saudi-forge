@@ -1,0 +1,7 @@
+KROM FORGE DEV v33.0 validation
+- New v33 direct MCP tools: 7
+- v33 unique names: 7/7
+- Duplicate direct registerTool names in server.ts: 0
+- package version: 33.0.0
+- TypeScript code reached dependency boundary; local bundle lacks @types/node before dependency installation.
+- v33 features: live provider benchmark, reliability history, task-aware smart routing, adaptive fallback, route explainability, quality benchmark planning.

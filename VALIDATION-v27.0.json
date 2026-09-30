@@ -1,0 +1,13 @@
+{
+  "version": "27.0.0",
+  "newTools": 12,
+  "newToolNamesUnique": true,
+  "newToolDuplicateCount": 0,
+  "typescriptNewLogicErrors": 0,
+  "knownExternalBaselineIssues": [
+    "Missing @modelcontextprotocol packages in recovered compact bundle",
+    "Missing zod package/types in recovered compact bundle",
+    "Missing @types/node in recovered compact bundle",
+    "Legacy module configuration reports top-level await under CommonJS"
+  ]
+}

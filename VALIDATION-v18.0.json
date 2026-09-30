@@ -1,0 +1,22 @@
+{
+  "version": "18.0.0",
+  "prior_runtime_tools": 5020,
+  "new_v18_tools": 10,
+  "runtime_total_tools": 5030,
+  "new_v18_unique": 10,
+  "new_v18_duplicates": 0,
+  "new_tool_names": [
+    "verified_execution_start_v18",
+    "execution_step_begin_v18",
+    "execution_receipt_v18",
+    "evidence_validator_v18",
+    "outcome_comparator_v18",
+    "false_pass_detector_v18",
+    "safe_resume_v18",
+    "execution_invariant_gate_v18",
+    "verified_release_gate_v18",
+    "verified_execution_status_v18"
+  ],
+  "server_version": "18.0.0",
+  "typescript_note": "No v18-specific diagnostics observed. Remaining diagnostics are missing external MCP/Zod/Node typings and the pre-existing module configuration."
+}

@@ -1,0 +1,4 @@
+{"timestamp":"2026-09-27T05:48:00.355Z","server":"krom-forge","operation":"list_tools","status":"success","durationMs":2338}
+{"timestamp":"2026-09-27T05:48:00.554Z","server":"krom-forge","operation":"call_tool","tool":"inspect_project","status":"success","durationMs":194}
+{"timestamp":"2026-09-27T10:12:27.551Z","server":"ksa-forge","operation":"list_tools","status":"success","durationMs":3257}
+{"timestamp":"2026-09-27T10:12:28.077Z","server":"ksa-forge","operation":"call_tool","tool":"developer_platform_status_v35","status":"success","durationMs":521}

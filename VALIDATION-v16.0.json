@@ -1,0 +1,21 @@
+{
+  "version": "16.0.0",
+  "prior_tools": 5000,
+  "new_tools": 10,
+  "total_tools": 5010,
+  "unique_tools": 5010,
+  "duplicates": 0,
+  "focus": "intelligent routing over raw tool-count growth",
+  "new_tool_names": [
+    "tool_search_v16",
+    "intelligent_tool_router_v16",
+    "capability_graph_v16",
+    "workflow_compose_v16",
+    "tool_risk_policy_v16",
+    "tool_usage_record_v16",
+    "tool_usage_telemetry_v16",
+    "domain_health_v16",
+    "execution_recipe_v16",
+    "router_status_v16"
+  ]
+}

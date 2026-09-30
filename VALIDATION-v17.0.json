@@ -1,0 +1,21 @@
+{
+  "version": "17.0.0",
+  "prior_runtime_tools": 5010,
+  "new_v17_tools": 10,
+  "runtime_total_tools": 5020,
+  "new_v17_unique": 10,
+  "new_v17_duplicates": 0,
+  "new_tool_names": [
+    "workflow_compile_v17",
+    "workflow_optimize_v17",
+    "workflow_replan_v17",
+    "workflow_gate_v17",
+    "workflow_outcome_record_v17",
+    "workflow_telemetry_v17",
+    "minimal_toolset_v17",
+    "workflow_evidence_map_v17",
+    "workflow_checkpoint_plan_v17",
+    "workflow_status_v17"
+  ],
+  "typescript_note": "No v17-specific diagnostics observed; unresolved diagnostics are missing external MCP/Zod/Node typings and prior module configuration."
+}

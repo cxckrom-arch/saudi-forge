@@ -1,0 +1,26 @@
+{
+  "version": "20.0.0",
+  "static_registered_tools": 212,
+  "static_unique_tools": 212,
+  "static_duplicates": [],
+  "v20_tools": [
+    "architecture_drift_scan_v20",
+    "breaking_change_forecast_v20",
+    "migration_compatibility_matrix_v20",
+    "safe_migration_plan_v20",
+    "migration_preflight_gate_v20",
+    "repair_proposal_engine_v20",
+    "schema_compatibility_gate_v20",
+    "api_compatibility_gate_v20",
+    "migration_execution_contract_v20",
+    "post_migration_verify_v20",
+    "rollforward_rollback_plan_v20",
+    "self_healing_status_v20"
+  ],
+  "v20_count": 12,
+  "v20_unique": 12,
+  "notes": [
+    "Prior versions include generated/dynamic registry tools that are not all visible as literal registerTool calls in static regex counts.",
+    "No v20-local TypeScript errors remained after filtering known missing external dependency/type declarations."
+  ]
+}

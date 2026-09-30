@@ -1,0 +1,10 @@
+{
+  "version": "24.0.0",
+  "v24_tools": 12,
+  "v24_unique": 12,
+  "v24_duplicates": [],
+  "expected_prior_runtime_tools": 5093,
+  "expected_runtime_tools_after_v24": 5105,
+  "server_version_24": true,
+  "state_dir": ".krom/v24-knowledge-graph/"
+}

@@ -1,0 +1,24 @@
+{
+  "version": "21.0.0",
+  "new_tools": 13,
+  "new_tool_names": [
+    "test_impact_intelligence_v21",
+    "flaky_test_detector_v21",
+    "contract_verification_v21",
+    "visual_baseline_governance_v21",
+    "release_risk_score_v21",
+    "canary_readiness_v21",
+    "change_provenance_v21",
+    "evidence_bundle_v21",
+    "regression_replay_plan_v21",
+    "artifact_integrity_v21",
+    "release_policy_v21",
+    "final_release_attestation_v21",
+    "release_intelligence_status_v21"
+  ],
+  "new_tool_duplicates": 0,
+  "static_registered_tools": 80,
+  "static_unique_tools": 80,
+  "typescript_check": "No v21-specific TypeScript errors after fix; remaining errors are missing external dependencies/Node typings and pre-existing module configuration.",
+  "state_dir": ".krom/v21-release-intelligence/"
+}

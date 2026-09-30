@@ -1,0 +1,16 @@
+{
+  "version": "31.0.0",
+  "directToolRegistrations": 194,
+  "v31Tools": [
+    "workspace_bootstrap_v31",
+    "runtime_doctor_v31",
+    "port_diagnostics_v31",
+    "env_template_v31",
+    "installation_repair_plan_v31",
+    "startup_integrity_gate_v31",
+    "install_status_v31"
+  ],
+  "v31ToolCount": 7,
+  "v31Unique": 7,
+  "duplicates": []
+}

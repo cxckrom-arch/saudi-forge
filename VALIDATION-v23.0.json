@@ -1,0 +1,15 @@
+{
+  "version": "23.0.0",
+  "newTools": 12,
+  "newToolNamesUnique": 12,
+  "duplicateNewToolNames": 0,
+  "expectedPriorRuntimeTools": 5081,
+  "expectedRuntimeTools": 5093,
+  "typescriptNewErrors": 0,
+  "knownExternalIssues": [
+    "MCP SDK packages are not included in the recovered compact bundle",
+    "zod is not included in the recovered compact bundle",
+    "@types/node is not included in the recovered compact bundle",
+    "legacy module configuration reports top-level await as CommonJS"
+  ]
+}
