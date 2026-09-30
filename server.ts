@@ -42,6 +42,7 @@ import { registerV34ContextDecisionTools } from './src/v34-context-decision-tool
 import { registerV35AdaptiveRuntimeTools } from './src/v35-adaptive-runtime-tools.js';
 import { registerV36LearningTools } from './src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from './src/v37-autopilot-tools.js';
+import { createAutopilotService } from './src/autopilot-service.js';
 import { registerV38CouncilTools } from './src/v38-council-tools.js';
 import { registerV39PredictiveTools } from './src/v39-predictive-tools.js';
 import { registerV4ProductTools } from './src/v4-product-tools.js';
@@ -978,65 +979,23 @@ const TASK_GRAPH_FILE = "task-graph.json";
 // =========================================================
 // v3.7 ENGINEERING AUTOPILOT + CHECKPOINT / ROLLBACK
 // =========================================================
-const AUTOPILOT_STATE_FILE = "autopilot-state.json";
-const AUTOPILOT_HISTORY_FILE = "autopilot-history.json";
-const AUTOPILOT_CHECKPOINT_DIR = "autopilot-checkpoints";
-
-type AutopilotPhase = "context"|"plan"|"execute"|"verify"|"repair"|"release"|"done"|"blocked";
-type AutopilotState = {
-  id:string; task:string; startedAt:string; updatedAt:string; phase:AutopilotPhase;
-  checkpointId?:string; qualityScore:number; iteration:number; maxIterations:number;
-  blockers:string[]; evidence:string[]; lastDecision?:string; status:"ACTIVE"|"PASS"|"BLOCKED"|"ROLLED_BACK";
-};
-
-async function readAutopilotState(): Promise<AutopilotState|null> {
-  try { return JSON.parse(await fs.readFile(await kromStatePath(AUTOPILOT_STATE_FILE), "utf8")); } catch { return null; }
-}
-async function writeAutopilotState(state:AutopilotState) {
-  state.updatedAt=new Date().toISOString();
-  await fs.writeFile(await kromStatePath(AUTOPILOT_STATE_FILE), JSON.stringify(state,null,2), "utf8");
-}
-async function appendAutopilotHistory(event:any) {
-  const fp=await kromStatePath(AUTOPILOT_HISTORY_FILE); let rows:any[]=[];
-  try { rows=JSON.parse(await fs.readFile(fp,"utf8")); } catch {}
-  rows.push({at:new Date().toISOString(),...event});
-  await fs.writeFile(fp,JSON.stringify(rows.slice(-1000),null,2),"utf8");
-}
-async function createAutopilotCheckpoint(label:string, files?:string[]) {
-  const id=`CP-${Date.now()}`;
-  const dir=await kromStatePath(path.join(AUTOPILOT_CHECKPOINT_DIR,id));
-  await fs.mkdir(dir,{recursive:true});
-  const candidates=files?.length ? files.map(safePath) : (await walkProject(PROJECT_ROOT,[],1800)).filter(f=>isTextFile(f));
-  const manifest:any[]=[];
-  for (const abs of candidates) {
-    try {
-      const rel=path.relative(PROJECT_ROOT,abs); if (!rel || rel.startsWith(".krom"+path.sep) || rel.startsWith(".git"+path.sep)) continue;
-      const stat=await fs.stat(abs); if (!stat.isFile() || stat.size>MAX_FILE_SIZE) continue;
-      const dst=path.join(dir,"files",rel); await fs.mkdir(path.dirname(dst),{recursive:true}); await fs.copyFile(abs,dst);
-      manifest.push({path:rel,size:stat.size});
-    } catch {}
-  }
-  const meta={id,label,createdAt:new Date().toISOString(),files:manifest};
-  await fs.writeFile(path.join(dir,"manifest.json"),JSON.stringify(meta,null,2),"utf8");
-  return meta;
-}
-async function restoreAutopilotCheckpoint(id:string) {
-  const dir=await kromStatePath(path.join(AUTOPILOT_CHECKPOINT_DIR,id));
-  const meta=JSON.parse(await fs.readFile(path.join(dir,"manifest.json"),"utf8"));
-  let restored=0;
-  for (const item of meta.files||[]) {
-    const src=path.join(dir,"files",item.path); const dst=safePath(item.path);
-    await fs.mkdir(path.dirname(dst),{recursive:true}); await fs.copyFile(src,dst); restored++;
-  }
-  return {id,restored,label:meta.label,createdAt:meta.createdAt};
-}
-function nextAutopilotPhase(state:AutopilotState, qualityScore:number, blockers:string[]) : AutopilotPhase {
-  if (blockers.length && state.iteration>=state.maxIterations) return "blocked";
-  if (blockers.length) return "repair";
-  if (qualityScore>=90) return "release";
-  if (qualityScore>=70) return "verify";
-  return "execute";
-}
+const v37AutopilotService=createAutopilotService({
+  projectRoot:PROJECT_ROOT,
+  maxFileSize:MAX_FILE_SIZE,
+  kromStatePath,
+  safePath,
+  walkProject,
+  isTextFile
+});
+const AUTOPILOT_STATE_FILE=v37AutopilotService.stateFile;
+const AUTOPILOT_HISTORY_FILE=v37AutopilotService.historyFile;
+const AUTOPILOT_CHECKPOINT_DIR=v37AutopilotService.checkpointDir;
+const readAutopilotState=v37AutopilotService.readState;
+const writeAutopilotState=v37AutopilotService.writeState;
+const appendAutopilotHistory=v37AutopilotService.appendHistory;
+const createAutopilotCheckpoint=v37AutopilotService.createCheckpoint;
+const restoreAutopilotCheckpoint=v37AutopilotService.restoreCheckpoint;
+const nextAutopilotPhase=v37AutopilotService.nextPhase;
 
 
 // =========================================================
