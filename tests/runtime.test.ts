@@ -30,6 +30,7 @@ import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
+import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
@@ -789,4 +790,14 @@ test('extracted v11 reliability catalog remains stable', () => {
   });
   assert.equal(names.length,11);
   assert.deepEqual(names,['observability_center_v11','failure_replay_v11','resilience_lab_v11','contract_test_planner_v11','feature_flag_manager_v11','deployment_strategy_v11','rollback_automation_plan_v11','slo_release_gate_v11','dependency_risk_monitor_v11','data_integrity_guard_v11','production_readiness_review_v11']);
+});
+
+test('extracted v16-v20 registration preserves the 54-tool catalog', () => {
+  const names:string[] = [];
+  registerV16V20Tools({ registerTool: (name:string) => { names.push(name); } } as any, {} as any);
+  assert.equal(names.length, 54);
+  for (const required of [
+    'tool_search_v16','workflow_compile_v17','verified_execution_start_v18',
+    'refactor_dependency_graph_v19','architecture_drift_scan_v20','self_healing_status_v20'
+  ]) assert.ok(names.includes(required), required);
 });
