@@ -15,6 +15,7 @@ import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
 import { createSecretManager } from '../src/secret-manager.js';
 import { createAiControlService } from '../src/ai-control-service.js';
+import { APP_VERSION, APP_DISPLAY_VERSION } from '../src/release-info.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -243,4 +244,16 @@ test('AI control banner audit ignores legacy comments but catches visible stale 
   const stale = await service.runtimeBannerAudit();
   assert.equal(stale.status, 'REVIEW');
   assert.deepEqual(stale.legacyMentions, ['KROM FORGE DEV v34.5']);
+});
+
+test('release identity stays synchronized across package, lockfile, config, and UI display version', async () => {
+  const packageJson = JSON.parse(await fs.readFile(path.resolve('package.json'), 'utf8'));
+  const lockfile = JSON.parse(await fs.readFile(path.resolve('package-lock.json'), 'utf8'));
+  const kromConfig = JSON.parse(await fs.readFile(path.resolve('krom.config.json'), 'utf8'));
+
+  assert.equal(packageJson.version, APP_VERSION);
+  assert.equal(lockfile.version, APP_VERSION);
+  assert.equal(lockfile.packages?.['']?.version, APP_VERSION);
+  assert.equal(kromConfig.version, APP_VERSION);
+  assert.equal(APP_DISPLAY_VERSION, `v${APP_VERSION.split('.').slice(0, 2).join('.')}`);
 });
