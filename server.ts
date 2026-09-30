@@ -13,6 +13,7 @@ import { resolveCommand } from './src/process-command.js';
 import { chatMessages, completionUrl } from './src/chat-context.js';
 import { MAX_FILE_SIZE, IGNORED_DIRS, TEXT_EXTENSIONS, createProjectContext } from './src/project-context.js';
 import { createPackageRunner } from './src/package-runner.js';
+import { registerAutomationTools } from './src/automation-tools.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -8417,18 +8418,7 @@ server.registerTool("developer_platform_status_v35",{title:"Developer Platform S
   server.registerTool("developer_platform_gate_v35",{title:"Developer Platform Gate v35",description:"Check whether provider, workspace and preview prerequisites are ready.",inputSchema:z.object({requirePreview:z.boolean().optional()}),annotations:{readOnlyHint:true,openWorldHint:false}},async({requirePreview})=>{try{const s:any=await v350PlatformStatus();const blockers:string[]=[];if(!(s.providers||[]).some((p:any)=>p.enabled))blockers.push('no enabled AI provider');if(requirePreview&&!s.preview?.url)blockers.push('preview URL not configured');return result(JSON.stringify({version:'37.0.0',status:blockers.length?'BLOCKED':'PASS',blockers,project:s.project,preview:s.preview},null,2));}catch(e){return errorResult(e);}});
 
 
-  server.registerTool('connected_tools_v37',{description:'List tools bound to the local automation runner with their actual schemas.',inputSchema:z.object({})},async()=>result(JSON.stringify(toolRuntime.catalog())));
-  server.registerTool('automation_status_v37',{description:'Read saved jobs and execution evidence.',inputSchema:z.object({})},async()=>result(JSON.stringify(toolRuntime.snapshot())));
-  server.registerTool('automation_save_v37',{description:'Create or update a local automation. Scheduling is disabled by default.',inputSchema:automationInput.extend({id:z.string().optional()})},async({id,...definition})=>{try{return result(JSON.stringify(await toolRuntime.upsert(definition,id)));}catch(e){return errorResult(e);}});
-  server.registerTool('automation_run_v37',{description:'Start a saved automation; returns a run ID. Read automation_status_v37 for completion.',inputSchema:z.object({id:z.string()})},async({id})=>{try{return result(JSON.stringify(await toolRuntime.startJob(id)));}catch(e){return errorResult(e);}});
-  server.registerTool('automation_cancel_v37',{description:'Stop a run after its current step finishes.',inputSchema:z.object({id:z.string()})},async({id})=>{try{return result(JSON.stringify(await toolRuntime.cancel(id)));}catch(e){return errorResult(e);}});
-
-  // Backward-compatible aliases retained for existing clients.
-  server.registerTool('connected_tools_v36',{description:'List tools bound to the local automation runner with their actual schemas.',inputSchema:z.object({})},async()=>result(JSON.stringify(toolRuntime.catalog())));
-  server.registerTool('automation_status_v36',{description:'Read saved jobs and execution evidence.',inputSchema:z.object({})},async()=>result(JSON.stringify(toolRuntime.snapshot())));
-  server.registerTool('automation_save_v36',{description:'Create or update a local automation. Scheduling is disabled by default.',inputSchema:automationInput.extend({id:z.string().optional()})},async({id,...definition})=>{try{return result(JSON.stringify(await toolRuntime.upsert(definition,id)));}catch(e){return errorResult(e);}});
-  server.registerTool('automation_run_v36',{description:'Start a saved automation; returns a run ID. Read automation_status_v36 for completion.',inputSchema:z.object({id:z.string()})},async({id})=>{try{return result(JSON.stringify(await toolRuntime.startJob(id)));}catch(e){return errorResult(e);}});
-  server.registerTool('automation_cancel_v36',{description:'Stop a run after its current step finishes.',inputSchema:z.object({id:z.string()})},async({id})=>{try{return result(JSON.stringify(await toolRuntime.cancel(id)));}catch(e){return errorResult(e);}});
+  registerAutomationTools(server, toolRuntime, result, errorResult);
 
     return server;
 }
