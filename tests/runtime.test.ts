@@ -22,6 +22,7 @@ import { registerModelControlTools } from '../src/model-control-tools.js';
 import { createDeveloperPlatformService } from '../src/developer-platform-service.js';
 import { registerCoreProjectTools } from '../src/core-project-tools.js';
 import { registerPrecisionExecutionTools } from '../src/precision-execution-tools.js';
+import { createPrecisionExecutionService, EXECUTION_DIR, EXECUTION_FILE } from '../src/precision-execution-service.js';
 import { registerPromptStudioTools } from '../src/prompt-studio-tools.js';
 import { registerVisualDesignerTools } from '../src/visual-designer-tools.js';
 import { registerV3CoreTools } from '../src/v3-core-tools.js';
@@ -847,4 +848,26 @@ test('extracted prompt design service preserves generation and scoring behavior'
   assert.ok(scorePrompt(prompt).score >= 80);
   const visual = visualReviewScore('responsive hierarchy spacing typography contrast accessibility loading empty error mobile');
   assert.ok(typeof visual.score === 'number');
+});
+
+test('precision execution service persists requirements, changed files, and command evidence', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-precision-service-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  const service = createPrecisionExecutionService({ safePath: (rel:string) => path.join(root, rel) });
+  const requirements = service.extractRequirementsFromPrompt('- Build dashboard\n- Test mobile layout');
+  assert.deepEqual(requirements, ['Build dashboard','Test mobile layout']);
+  const now = new Date().toISOString();
+  await service.writeExecutionManifest({
+    version: 1, taskId: 't1', prompt: 'demo', createdAt: now, updatedAt: now,
+    requirements: [{ id: 'R001', text: 'Build dashboard', status: 'pending' }],
+    changedFiles: [], commandEvidence: [], blockers: []
+  });
+  await service.recordChangedFile('src\\app.ts');
+  await service.recordCommandEvidence('typecheck', true, 'PASS');
+  const saved = await service.readExecutionManifest();
+  assert.ok(saved);
+  assert.deepEqual(saved?.changedFiles, ['src/app.ts']);
+  assert.equal(saved?.commandEvidence[0]?.command, 'typecheck');
+  assert.equal(path.basename(await service.executionManifestPath()), EXECUTION_FILE);
+  assert.equal(path.basename(path.dirname(await service.executionManifestPath())), EXECUTION_DIR);
 });
