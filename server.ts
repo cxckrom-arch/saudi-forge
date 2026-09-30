@@ -128,9 +128,6 @@ const { executeProgram, runPackageScript } = createPackageRunner({
 // PROMPT STUDIO HELPERS
 // =========================================================
 
-type PromptLanguage = "ar" | "en" | "bilingual";
-type PromptMode = "build" | "fix" | "upgrade" | "audit" | "ui" | "architecture" | "full";
-type AutonomyLevel = "guided" | "strong" | "autonomous";
 
 const PROMPT_LIBRARY_DIR = ".krom-prompts";
 
