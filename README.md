@@ -1,4 +1,4 @@
-# KSA FORGE DEV v46
+# KSA FORGE DEV v47
 
 Local-first MCP developer platform with an integrated IDE surface, project inspection tools, automation runtime, model-provider routing, diagnostics, and verification gates.
 
@@ -110,9 +110,13 @@ The V37 modularization has started with:
 
 Developer chat now uses bounded smart failover. The highest-ranked healthy provider is tried first; on request failure, KSA Forge can move through up to two additional healthy routed candidates. Attempt metadata is retained for diagnostics without persisting credentials.
 
+## V47 provider resilience
+
+Developer chat now includes a per-provider circuit breaker on top of V46 Smart Failover. Two consecutive request failures temporarily open that provider circuit for 60 seconds, so subsequent requests skip the unhealthy provider and continue through healthy routed alternatives without wasting another request timeout. Circuit state is exposed in Developer Platform status for diagnostics.
+
 ## Version
 
-Current release line: **46.0.0**
+Current release line: **47.0.0**
 
 ### Modular MCP registration architecture
 
