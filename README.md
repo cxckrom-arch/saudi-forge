@@ -1,4 +1,4 @@
-# KSA FORGE DEV v42
+# KSA FORGE DEV v43
 
 Local-first MCP developer platform with an integrated IDE surface, project inspection tools, automation runtime, model-provider routing, diagnostics, and verification gates.
 
@@ -76,6 +76,8 @@ The V37 modularization has started with:
 - `src/diagnostics-service.ts` — typecheck/lint diagnostics aggregation
 - `src/provider-store.ts` — provider profile storage, credential headers, and model discovery helpers
 - `src/provider-service.ts` — provider upsert, health, discovery, and model selection operations
+- `src/provider-routing.ts` — routing policy, task classification, health-aware provider selection, and fallback plan
+- `src/adaptive-model-service.ts` — benchmark history, reliability scoring, smart routing, fallback chains, and route explainability
 - `src/network-policy.ts` — loopback-first host/origin policy
 - `src/release-info.ts` — centralized release identity
 - `src/tool-runtime.ts` — bounded automation runner and persisted execution evidence
@@ -96,4 +98,4 @@ The V37 modularization has started with:
 
 ## Version
 
-Current release line: **42.0.0**
+Current release line: **43.0.0**
