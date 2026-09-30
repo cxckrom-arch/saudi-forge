@@ -871,3 +871,32 @@ test('precision execution service persists requirements, changed files, and comm
   assert.equal(path.basename(await service.executionManifestPath()), EXECUTION_FILE);
   assert.equal(path.basename(path.dirname(await service.executionManifestPath())), EXECUTION_DIR);
 });
+
+test('v3.7 autopilot start uses the injected state bindings', async () => {
+  const handlers = new Map<string, any>();
+  const server:any = { registerTool: (name:string, _config:any, handler:any) => { handlers.set(name, handler); } };
+  let written:any = null;
+  registerV37AutopilotTools(server, {
+    taskGraphFile: 'task-graph.json',
+    autopilotHistoryFile: 'autopilot-history.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    createAutopilotCheckpoint: async () => ({ id: 'CP-1' }),
+    createCouncilSession: async () => ({ id: 'C-1', requiredAgents: [], status: 'READY' }),
+    buildSmartContext: async () => ({ selected: [], omittedHighRisk: [] }),
+    decideExecutionStrategy: () => ({ mode: 'NARROW', risk: 'LOW' }),
+    buildChangeSimulation: async () => ({ id: 'SIM-1', risk: 'LOW', affectedFiles: [], affectedRoutes: [] }),
+    evaluatePreflight: async () => ({ status: 'READY' }),
+    buildTaskGraph: () => ({ nodes: [] }),
+    kromStatePath: async (file:string) => path.join(os.tmpdir(), file),
+    writeAutopilotState: async (state:any) => { written = state; },
+    appendAutopilotHistory: async () => {},
+    readAutopilotState: async () => written,
+    nextAutopilotPhase: () => 'verify',
+    restoreAutopilotCheckpoint: async () => ({ restored: 1 })
+  });
+  const response = await handlers.get('engineering_autopilot_start')({ task: 'Fix project safely', maxIterations: 3, checkpointFiles: [] });
+  assert.ok(!response.isError);
+  assert.equal(written?.status, 'ACTIVE');
+  assert.equal(written?.checkpointId, 'CP-1');
+});
