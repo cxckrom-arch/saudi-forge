@@ -23,6 +23,7 @@ import { registerWorkspaceRoutes } from './src/workspace-routes.js';
 import { createDiagnosticsService } from './src/diagnostics-service.js';
 import { createProviderStore, type ProviderKind as V320ProviderKind, type ProviderProfile as V320Profile } from './src/provider-store.js';
 import { createProviderService } from './src/provider-service.js';
+import { createProviderRouting, classifyTask } from './src/provider-routing.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4616,17 +4617,21 @@ const v320ProviderHealth = v320ProviderService.providerHealth;
 const v320ModelDiscover = v320ProviderService.modelDiscover;
 const v320SelectModel = v320ProviderService.selectModel;
 
-async function v320RoutingPolicy(input:{codingProvider?:string;codingModel?:string;planningProvider?:string;planningModel?:string;generalProvider?:string;generalModel?:string;designProvider?:string;designModel?:string}){
-  await v320Ensure(); const current=await (async()=>{try{return JSON.parse(await fs.readFile(V320_ROUTING_FILE,'utf8'))}catch{return {}}})(); const policy={version:'32.1.0',updatedAt:new Date().toISOString(),routes:{...(current.routes||{}),coding:{providerId:input.codingProvider||current.routes?.coding?.providerId,model:input.codingModel||current.routes?.coding?.model},planning:{providerId:input.planningProvider||current.routes?.planning?.providerId,model:input.planningModel||current.routes?.planning?.model},general:{providerId:input.generalProvider||current.routes?.general?.providerId,model:input.generalModel||current.routes?.general?.model},design:{providerId:input.designProvider||current.routes?.design?.providerId,model:input.designModel||current.routes?.design?.model}}}; await fs.writeFile(V320_ROUTING_FILE,JSON.stringify(policy,null,2),'utf8'); return v320Write('routing-policy-status.json',{status:'SAVED',...policy});
-}
-function v320TaskRoute(task:string){ const q=task.toLowerCase(); if(/ui|ux|design|css|tailwind|responsive|rtl|واجهة|تصميم/.test(q))return 'design'; if(/architect|plan|schema|migration|architecture|خطة|معمار/.test(q))return 'planning'; if(/code|bug|fix|typescript|react|function|component|برمج|صلح|كود/.test(q))return 'coding'; return 'general'; }
-async function v320ModelRoute(input:{task:string;requireHealthy?:boolean}){
-  const profiles=await v320ReadProfiles(); let policy:any={}; try{policy=JSON.parse(await fs.readFile(V320_ROUTING_FILE,'utf8'))}catch{} const route=v320TaskRoute(input.task); const configured=policy.routes?.[route]; let candidate=profiles.find(p=>p.enabled&&p.id===configured?.providerId)||profiles.filter(p=>p.enabled).sort((a,b)=>a.priority-b.priority)[0];
-  let health:any=null; if(candidate && input.requireHealthy!==false){ health=await v320ProviderHealth({providerId:candidate.id}); if(!health.results?.[0]?.ok){ const all:any=await v320ProviderHealth({}); const ok=all.results?.find((x:any)=>x.ok); if(ok)candidate=profiles.find(p=>p.id===ok.providerId); } }
-  return v320Write('last-route.json',{version:'32.1.0',status:candidate?'ROUTED':'NO_PROVIDER',taskClass:route,providerId:candidate?.id||null,provider:candidate?.name||null,model:configured?.providerId===candidate?.id&&configured?.model?configured.model:candidate?.defaultModel||null,healthChecked:input.requireHealthy!==false,reason:configured?.providerId?'matched routing policy':'selected enabled provider by priority'});
-}
-async function v320FallbackPlan(){ const profiles=(await v320ReadProfiles()).filter(p=>p.enabled).sort((a,b)=>a.priority-b.priority); const health:any=await v320ProviderHealth({}); const byId=new Map((health.results||[]).map((x:any)=>[x.providerId,x])); return v320Write('fallback-plan.json',{version:'32.1.0',status:'READY',chain:profiles.map((p,i)=>({order:i+1,providerId:p.id,model:p.defaultModel||null,healthy:!!(byId.get(p.id) as any)?.ok,priority:p.priority})),rule:'Prefer the configured route; fall back only to an enabled provider that passes the health check.'}); }
-async function v320Status(){ await v320Ensure(); const profiles=await v320ReadProfiles(); let routing:any=null; try{routing=JSON.parse(await fs.readFile(V320_ROUTING_FILE,'utf8'))}catch{} return {version:'32.1.0',status:'READY',kromHome:KROM_HOME,profileCount:profiles.length,enabledProviders:profiles.filter(p=>p.enabled).length,profilesFile:V320_PROFILES_FILE,routingFile:V320_ROUTING_FILE,routing}; }
+const v320ProviderRouting = createProviderRouting({
+  routingFile: V320_ROUTING_FILE,
+  ensure: v320Ensure,
+  readProfiles: v320ReadProfiles,
+  providerHealth: v320ProviderHealth,
+  writeState: v320Write,
+  kromHome: KROM_HOME,
+  profilesFile: V320_PROFILES_FILE
+});
+const v320RoutingPolicy = v320ProviderRouting.routingPolicy;
+const v320TaskRoute = classifyTask;
+const v320ModelRoute = v320ProviderRouting.modelRoute;
+const v320FallbackPlan = v320ProviderRouting.fallbackPlan;
+const v320Status = v320ProviderRouting.status;
+
 // ===== END v32.0 =====
 
 // ===== v33.0 ADAPTIVE MULTI-MODEL INTELLIGENCE =====
