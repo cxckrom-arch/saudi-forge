@@ -33,6 +33,7 @@ import { registerV34ContextDecisionTools } from '../src/v34-context-decision-too
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { createPredictiveEngineeringService } from '../src/predictive-engineering-service.js';
 import { createLearningMemoryService } from '../src/learning-memory-service.js';
+import { createCodeIntelligenceService } from '../src/code-intelligence-service.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
@@ -996,4 +997,27 @@ test('learning memory service persists bounded evidence and scores confidence co
   const summary=service.summarizeLessons(rows,'fix another bug');
   assert.equal(summary.taskType,'repair');
   assert.equal(summary.successes,1);
+});
+
+test('code intelligence service builds local dependency graph and impact risk', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-code-intel-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  await fs.mkdir(path.join(root,'src'),{recursive:true});
+  await fs.writeFile(path.join(root,'src','a.ts'),"import { b } from './b'; export const a=b;",'utf8');
+  await fs.writeFile(path.join(root,'src','b.ts'),"export const b=1;",'utf8');
+  const service=createCodeIntelligenceService({
+    projectRoot:root,
+    maxFileSize:1024*1024,
+    walkProject:async()=>[path.join(root,'src','a.ts'),path.join(root,'src','b.ts')],
+    isTextFile:()=>true,
+    kromStatePath:async(file:string)=>path.join(root,file)
+  });
+  const graph=await service.buildCodeIntelligenceGraph();
+  assert.equal(graph.stats.files,2);
+  assert.ok(graph.nodes['src/a.ts'].imports.includes('src/b.ts'));
+  assert.ok(graph.nodes['src/b.ts'].importedBy.includes('src/a.ts'));
+  const reach=service.dependencyReach(graph,['src/a.ts'],'dependencies',2);
+  assert.ok(reach.all.includes('src/b.ts'));
+  const risk=service.riskForImpact(['src/a.ts'],['src/b.ts'],['/a'],false,false);
+  assert.ok(['LOW','MEDIUM','HIGH'].includes(risk.level));
 });
