@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-export type ProviderKind = "ollama" | "gpt4all" | "openai-compatible" | "gemini";
+export type ProviderKind = "ollama" | "gpt4all" | "openai-compatible" | "gemini" | "custom";
 
 export type ProviderProfile = {
   id: string;
