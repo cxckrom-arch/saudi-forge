@@ -40,6 +40,7 @@ import { registerV6IdeCoreTools } from '../src/v6-ide-core-tools.js';
 import { registerV7VisualIdeTools } from '../src/v7-visual-ide-tools.js';
 import { registerV8WorkbenchTools } from '../src/v8-workbench-tools.js';
 import { registerV9EngineeringOpsTools } from '../src/v9-engineering-ops-tools.js';
+import { registerV10SoftwareFactoryTools } from '../src/v10-software-factory-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -764,4 +765,16 @@ test('extracted v9 engineering operations catalog remains stable', () => {
   });
   assert.equal(names.length,11);
   assert.deepEqual(names, ['runtime_process_manager_v9','test_explorer_v9','debug_log_center_v9','api_inspector_v9','database_panel_v9','env_secrets_manager_v9','extension_sdk_v9','workspace_profile_v9','dependency_doctor_v9','project_health_dashboard_v9','release_center_v9']);
+});
+
+test('extracted v10 software factory catalog remains stable', () => {
+  const names:string[] = [];
+  registerV10SoftwareFactoryTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    specFile:'spec.json', archFile:'arch.json', migrationFile:'migration.json', e2eFile:'e2e.json', visualRegressionFile:'visual.json', releaseNotesFile:'notes.json', cicdFile:'cicd.json', qualityBudgetFile:'budget.json',
+    result:(text:string)=>({content:[{type:'text',text}]}), errorResult:(error:unknown)=>({isError:true,error}),
+    v100SpecPipeline:async()=>({}), v100ArchitectureGraph:async()=>({}), v100MigrationPlanner:async()=>({}), v100E2EScenarios:async()=>({}), v100VisualRegression:async()=>({}),
+    v100ReleaseNotes:async()=>({}), v100CicdOrchestrator:async()=>({}), v100QualityBudget:async()=>({}), v100TelemetryRecord:async()=>({}), v100Blueprint:async()=>({}), v100FactoryStatus:async()=>({})
+  });
+  assert.equal(names.length,11);
+  assert.deepEqual(names, ['spec_to_code_pipeline_v10','architecture_graph_v10','migration_planner_v10','e2e_scenario_generator_v10','visual_regression_manager_v10','release_notes_generator_v10','cicd_orchestrator_v10','quality_budget_v10','engineering_telemetry_v10','project_blueprints_v10','software_factory_status_v10']);
 });
