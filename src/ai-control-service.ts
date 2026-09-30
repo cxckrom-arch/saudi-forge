@@ -133,8 +133,9 @@ export function createAiControlService(options: {
   async function routePreview(input: { task: string; preferLocal?: boolean }) {
     const explained: any = await routeExplain({ task: input.task });
     return write("route-preview.json", {
-      version: APP_VERSION,
       ...explained,
+      version: APP_VERSION,
+      schemaVersion: explained?.version || explained?.schemaVersion || null,
       preferLocal: !!input.preferLocal
     });
   }
