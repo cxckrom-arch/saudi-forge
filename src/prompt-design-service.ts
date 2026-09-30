@@ -1,5 +1,9 @@
 import path from "node:path";
 
+export type PromptLanguage = "ar" | "en" | "bilingual";
+export type PromptMode = "build" | "fix" | "upgrade" | "audit" | "ui" | "architecture" | "full";
+export type AutonomyLevel = "guided" | "strong" | "autonomous";
+
 export function sanitizePromptName(name: string) {
   const cleaned = name
     .trim()
