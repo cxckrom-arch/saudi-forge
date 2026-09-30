@@ -28,3 +28,7 @@ The largest remaining blocks in `server.ts` are MCP tool-registration groups and
 - Updated provider and secret-management API responses to expose the current release while preserving module schema versions.
 - Prevented adaptive route metadata from overriding the current release version.
 - Added regression coverage for release consistency, workspace version contracts, visible legacy banners, provider/secret version contracts, and route-preview version precedence.
+
+- Refactored MCP registration architecture so `server.ts` contains zero direct `server.registerTool(...)` declarations.
+- Extracted v16–v20 (54 tools), v21–v25 (63 tools), and v26–v31 (64 tools) into dedicated registration modules with catalog regression guards.
+- Added a composition-root regression gate that prevents future inline MCP tool registration drift.
