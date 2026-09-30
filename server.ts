@@ -4835,7 +4835,7 @@ const V350_STATE_DIR = path.join(KROM_HOME, ".krom", "v35-developer-platform");
 const V350_CHAT_FILE = path.join(V350_STATE_DIR, "chat-history.json");
 async function v350Ensure(){ await fs.mkdir(V350_STATE_DIR,{recursive:true}); }
 async function v350ReadChat(){ await v350Ensure(); try{return JSON.parse(await fs.readFile(V350_CHAT_FILE,'utf8'));}catch{return {messages:[]};} }
-async function v350WriteChat(messages:any[]){ await v350Ensure(); const out={version:'36.0.0',updatedAt:new Date().toISOString(),messages:messages.slice(-80)}; await fs.writeFile(V350_CHAT_FILE,JSON.stringify(out,null,2),'utf8'); return out; }
+async function v350WriteChat(messages:any[]){ await v350Ensure(); const out={version:'37.0.0',updatedAt:new Date().toISOString(),messages:messages.slice(-80)}; await fs.writeFile(V350_CHAT_FILE,JSON.stringify(out,null,2),'utf8'); return out; }
 function v350ContentFromOpenAI(data:any){ return String(data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? '').trim(); }
 let v350ChatBusy=false;
 async function v350AskModel(input:{message:string;activeFile?:string|null;preferLocal?:boolean}){
@@ -4869,7 +4869,7 @@ async function v350AskModelImpl(input:{message:string;activeFile?:string|null;pr
   }
   if(!answer) throw new Error('The provider returned an empty response.');
   const history=await v350ReadChat(); const messages=[...(history.messages||[]),{role:'user',content:message,at:new Date().toISOString(),activeFile:input.activeFile||null},{role:'assistant',content:answer,at:new Date().toISOString(),providerId:profile.id,provider:profile.name,model,latencyMs:Date.now()-started}]; await v350WriteChat(messages);
-  return {version:'36.0.0',status:'OK',answer,providerId:profile.id,provider:profile.name,model,latencyMs:Date.now()-started,httpStatus,route:routed.selected};
+  return {version:'37.0.0',status:'OK',answer,providerId:profile.id,provider:profile.name,model,latencyMs:Date.now()-started,httpStatus,route:routed.selected};
 }
 async function v350FullScan(){
   const [runtime,diag,deps,git]=await Promise.all([v310RuntimeDoctor(),v60Diagnostics(),v90DependencyDoctor(),executeProgram('git',['status','--short'],PROJECT_ROOT,30000)]);
@@ -4881,10 +4881,10 @@ async function v350FullScan(){
   if(errors.length) blockers.push('diagnostic errors');
   if(health.score<80) blockers.push('project health');
   const needsReview=!git.success || deps.concerns.some((x:any)=>x.severity==='warning') || diag.checks.some((x:any)=>x.available===false);
-  return {version:'36.0.0',status:blockers.length?'ISSUES_FOUND':needsReview?'REVIEW':'READY',projectRoot:PROJECT_ROOT,blockers,checks:diag.checks,summary:{runtime:runtime.status,diagnostics:diag.status,errorCount:errors.length,warningCount:warnings.length,dependencyStatus:deps.concerns.some((x:any)=>x.severity==='warning')?'REVIEW':'READY',healthStatus:health.grade||'UNKNOWN',gitStatus:git.success?'AVAILABLE':'UNAVAILABLE',gitDirty:git.success?!!String(git.stdout||'').trim():null},errors:errors.slice(0,100),warnings:warnings.slice(0,100),dependencies:deps,health,git:git.success?git.stdout:(git.stderr||git.message)};
+  return {version:'37.0.0',status:blockers.length?'ISSUES_FOUND':needsReview?'REVIEW':'READY',projectRoot:PROJECT_ROOT,blockers,checks:diag.checks,summary:{runtime:runtime.status,diagnostics:diag.status,errorCount:errors.length,warningCount:warnings.length,dependencyStatus:deps.concerns.some((x:any)=>x.severity==='warning')?'REVIEW':'READY',healthStatus:health.grade||'UNKNOWN',gitStatus:git.success?'AVAILABLE':'UNAVAILABLE',gitDirty:git.success?!!String(git.stdout||'').trim():null},errors:errors.slice(0,100),warnings:warnings.slice(0,100),dependencies:deps,health,git:git.success?git.stdout:(git.stderr||git.message)};
 }
-async function v350PreviewSet(input:{url:string}){ const url=String(input.url||'').trim(); if(url && !/^https?:\/\//i.test(url)) throw new Error('Preview URL must start with http:// or https://'); const state={status:url?'CONFIGURED':'IDLE',url:url||null,viewport:{width:1440,height:900},lastChecked:new Date().toISOString()}; await v60WriteJson(V70_PREVIEW_FILE,state); return {version:'36.0.0',status:'SAVED',preview:state}; }
-async function v350PlatformStatus(){ const [state,control,chat]=await Promise.all([v80WorkbenchState(),v340ControlStatus(),v350ReadChat()]); return {version:'36.0.0',status:'READY',project:PROJECT_ROOT,preview:state.preview,providers:control.providers,chatMessages:(chat.messages||[]).slice(-30),activeFile:state.editor?.activeFile||null}; }
+async function v350PreviewSet(input:{url:string}){ const url=String(input.url||'').trim(); if(url && !/^https?:\/\//i.test(url)) throw new Error('Preview URL must start with http:// or https://'); const state={status:url?'CONFIGURED':'IDLE',url:url||null,viewport:{width:1440,height:900},lastChecked:new Date().toISOString()}; await v60WriteJson(V70_PREVIEW_FILE,state); return {version:'37.0.0',status:'SAVED',preview:state}; }
+async function v350PlatformStatus(){ const [state,control,chat]=await Promise.all([v80WorkbenchState(),v340ControlStatus(),v350ReadChat()]); return {version:'37.0.0',status:'READY',project:PROJECT_ROOT,preview:state.preview,providers:control.providers,chatMessages:(chat.messages||[]).slice(-30),activeFile:state.editor?.activeFile||null}; }
 function v350Esc(v:any){ return String(v??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":'&#39;'} as any)[c]||c); }
 async function v350Html(){
   const st:any=await v350PlatformStatus(); const providers=(st.providers||[]).filter((p:any)=>p.enabled); const providerLabel=providers.map((p:any)=>p.name).join(' · ')||'No provider enabled'; const previewUrl=st.preview?.url||'';
@@ -4909,7 +4909,7 @@ function createServer() {
 
 const server = new McpServer({
     name: "KSA-FORGE-DEV",
-    version: "36.0.0"
+    version: "37.0.0"
   });
 
   const register = server.registerTool.bind(server);
@@ -8414,7 +8414,7 @@ server.registerTool("developer_platform_status_v35",{title:"Developer Platform S
   server.registerTool("developer_chat_v35",{title:"Developer Chat v35",description:"Ask the routed AI provider about the current project and optional active file.",inputSchema:z.object({message:z.string().min(1),activeFile:z.string().optional(),preferLocal:z.boolean().optional()}),annotations:{readOnlyHint:false,openWorldHint:true}},async(input)=>{try{return result(JSON.stringify(await v350AskModel(input),null,2));}catch(e){return errorResult(e);}});
   server.registerTool("full_project_scan_v35",{title:"Full Project Scan v35",description:"Run runtime, diagnostics, dependency, project health and Git checks and return one consolidated report.",inputSchema:z.object({}),annotations:{readOnlyHint:false,openWorldHint:false}},async()=>{try{return result(JSON.stringify(await v350FullScan(),null,2));}catch(e){return errorResult(e);}});
   server.registerTool("preview_control_v35",{title:"Preview Control v35",description:"Set or clear the live preview URL used by the developer platform.",inputSchema:z.object({url:z.string()}),annotations:{readOnlyHint:false,openWorldHint:true}},async(input)=>{try{return result(JSON.stringify(await v350PreviewSet(input),null,2));}catch(e){return errorResult(e);}});
-  server.registerTool("developer_platform_gate_v35",{title:"Developer Platform Gate v35",description:"Check whether provider, workspace and preview prerequisites are ready.",inputSchema:z.object({requirePreview:z.boolean().optional()}),annotations:{readOnlyHint:true,openWorldHint:false}},async({requirePreview})=>{try{const s:any=await v350PlatformStatus();const blockers:string[]=[];if(!(s.providers||[]).some((p:any)=>p.enabled))blockers.push('no enabled AI provider');if(requirePreview&&!s.preview?.url)blockers.push('preview URL not configured');return result(JSON.stringify({version:'36.0.0',status:blockers.length?'BLOCKED':'PASS',blockers,project:s.project,preview:s.preview},null,2));}catch(e){return errorResult(e);}});
+  server.registerTool("developer_platform_gate_v35",{title:"Developer Platform Gate v35",description:"Check whether provider, workspace and preview prerequisites are ready.",inputSchema:z.object({requirePreview:z.boolean().optional()}),annotations:{readOnlyHint:true,openWorldHint:false}},async({requirePreview})=>{try{const s:any=await v350PlatformStatus();const blockers:string[]=[];if(!(s.providers||[]).some((p:any)=>p.enabled))blockers.push('no enabled AI provider');if(requirePreview&&!s.preview?.url)blockers.push('preview URL not configured');return result(JSON.stringify({version:'37.0.0',status:blockers.length?'BLOCKED':'PASS',blockers,project:s.project,preview:s.preview},null,2));}catch(e){return errorResult(e);}});
 
 
   server.registerTool('connected_tools_v36',{description:'List tools bound to the local automation runner with their actual schemas.',inputSchema:z.object({})},async()=>result(JSON.stringify(toolRuntime.catalog())));
@@ -8521,7 +8521,7 @@ await app.listen({
 
 console.log("");
 toolRuntime.startScheduler();
-console.log(" KSA FORGE DEV v36.0 - DEVELOPER PLATFORM · CHAT + PREVIEW");
+console.log(" KSA FORGE DEV v37.0 - DEVELOPER PLATFORM · CHAT + PREVIEW");
 console.log(" mega_100_status_v12");
 console.log(" mega_100_audit_v12");
 
