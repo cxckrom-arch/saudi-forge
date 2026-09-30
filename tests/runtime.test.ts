@@ -11,6 +11,7 @@ import { resolveCommand } from '../src/process-command.js';
 import { createProjectContext } from '../src/project-context.js';
 import { LOOPBACK_HOST, createNetworkPolicy } from '../src/network-policy.js';
 import { createProviderStore } from '../src/provider-store.js';
+import { createProviderService } from '../src/provider-service.js';
 import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
 import { createSecretManager } from '../src/secret-manager.js';
@@ -256,4 +257,45 @@ test('release identity stays synchronized across package, lockfile, config, and 
   assert.equal(lockfile.packages?.['']?.version, APP_VERSION);
   assert.equal(kromConfig.version, APP_VERSION);
   assert.equal(APP_DISPLAY_VERSION, `v${APP_VERSION.split('.').slice(0, 2).join('.')}`);
+});
+
+test('provider and secret APIs expose release version while preserving schema version', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-version-contract-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const profile:any = {
+    id: 'mock', name: 'Mock', kind: 'custom', baseUrl: 'http://127.0.0.1:9999',
+    apiKeyEnv: 'MOCK_API_KEY', enabled: true, priority: 1, timeoutMs: 1000
+  };
+  const store:any = {
+    normalizeBase: (v:string) => v,
+    safeId: (v:string) => v,
+    readProfiles: async () => [profile],
+    saveProfiles: async () => {},
+    authHeaders: () => ({}),
+    modelsUrl: () => 'http://127.0.0.1:9999/models',
+    extractModels: () => []
+  };
+  const provider = createProviderService({
+    store,
+    writeState: async (_name:string, data:any) => data,
+    profilesFile: path.join(root, 'providers.json'),
+    env: {}
+  });
+  const profiles = await provider.profiles();
+  assert.equal(profiles.version, APP_VERSION);
+  assert.equal(profiles.schemaVersion, '32.1.0');
+
+  const env:any = {};
+  const secrets = createSecretManager({
+    kromHome: root,
+    readProfiles: async () => [profile],
+    providerHealth: async () => ({ results: [{ ok: true }] }),
+    selectModel: async () => ({}),
+    providerControl: async () => ({}),
+    env
+  });
+  const saved = await secrets.setCredential({ providerId: 'mock', apiKey: '12345678' });
+  assert.equal(saved.version, APP_VERSION);
+  assert.equal(saved.schemaVersion, '34.5.0');
 });
