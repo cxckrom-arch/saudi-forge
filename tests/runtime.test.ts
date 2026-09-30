@@ -35,6 +35,7 @@ import { createPredictiveEngineeringService } from '../src/predictive-engineerin
 import { createLearningMemoryService } from '../src/learning-memory-service.js';
 import { createCodeIntelligenceService } from '../src/code-intelligence-service.js';
 import { createSmartContextService } from '../src/smart-context-service.js';
+import { createRepairService } from '../src/repair-service.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
@@ -1047,4 +1048,27 @@ test('smart context service selects relevant files and produces conservative str
   const strategy=service.decideExecutionStrategy('fix login auth bug',bundle);
   assert.equal(strategy.mode,'REPAIR');
   assert.ok(strategy.agents.includes('Developer'));
+});
+
+test('repair service persists cycle state, fingerprints findings, and locates likely files', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-repair-service-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  await fs.mkdir(path.join(root,'src'),{recursive:true});
+  await fs.writeFile(path.join(root,'src','login.ts'),'export const loginError = true;','utf8');
+  const service=createRepairService({
+    projectRoot:root,
+    kromStatePath:async(file:string)=>path.join(root,file),
+    runNpmScriptIfPresent:async()=>({available:false,success:null,stdout:'',stderr:''}),
+    readLatestLiveBrowserReport:async()=>null,
+    readExecutionManifest:async()=>null,
+    walkProject:async()=>[path.join(root,'src','login.ts')],
+    isTextFile:()=>true
+  });
+  const state:any={version:1,cycleId:'R1',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),maxIterations:3,iteration:1,status:'ACTIVE',lastFingerprint:'',repeatedFingerprintCount:0,findings:[],history:[]};
+  await service.writeRepairState(state);
+  assert.equal((await service.readRepairState())?.cycleId,'R1');
+  const findings:any[]=[{id:'F1',source:'typecheck',severity:'major',message:'loginError undefined'}];
+  assert.equal(service.repairFingerprint(findings),service.repairFingerprint(findings));
+  const likely=await service.locateLikelyFiles(findings,5);
+  assert.ok(likely.some((x:any)=>x.file==='src/login.ts'));
 });
