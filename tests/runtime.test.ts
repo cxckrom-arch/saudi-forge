@@ -270,7 +270,7 @@ test('AI control banner audit ignores legacy comments but catches visible stale 
     'utf8'
   );
   const clean = await service.runtimeBannerAudit();
-  assert.equal(clean.version, '45.0.0');
+  assert.equal(clean.version, APP_VERSION);
   assert.equal(clean.status, 'PASS');
   assert.deepEqual(clean.legacyMentions, []);
 
