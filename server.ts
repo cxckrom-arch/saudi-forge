@@ -19,6 +19,7 @@ import { APP_NAME, APP_VERSION, APP_DISPLAY_VERSION } from './src/release-info.j
 import { registerAiControlRoutes } from './src/ai-control-routes.js';
 import { registerAutomationHttpRoutes } from './src/automation-http-routes.js';
 import { registerDeveloperRoutes } from './src/developer-routes.js';
+import { registerWorkspaceRoutes } from './src/workspace-routes.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -8454,24 +8455,15 @@ app.all(
 
 app.get("/", async (_request, reply) => reply.type("text/html; charset=utf-8").send(await v350Html()));
 app.get("/ide", async (_request, reply) => reply.type("text/html; charset=utf-8").send(await v350Html()));
-app.get("/ide/api/state", async (_request, reply) => {
-  try{return reply.type("application/json").send(await v80WorkbenchState());}
-  catch(error){return reply.code(500).send({error:error instanceof Error?error.message:String(error)});}
+registerWorkspaceRoutes(app, {
+  workbenchState: v80WorkbenchState,
+  normalizeRel,
+  readTextFile: v80ReadTextFile,
+  writeTextFile: v80WriteTextFile,
+  undoRedo: v80UndoRedo,
+  readChatContext: (fallback: any) => v60ReadJson(V80_CHAT_CONTEXT_FILE, fallback),
+  writeChatContext: (state: any) => v60WriteJson(V80_CHAT_CONTEXT_FILE, state)
 });
-
-app.get("/ide/api/file", async (request:any, reply) => {
-  try{const rel=String(request.query?.path||"");if(!rel)throw new Error("path is required");return reply.send({file:normalizeRel(rel),content:await v80ReadTextFile(rel)});}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});}
-});
-app.post("/ide/api/file", async (request:any, reply) => {
-  try{const rel=String(request.body?.path||"");const content=String(request.body?.content??"");if(!rel)throw new Error("path is required");return reply.send({status:"SAVED",...(await v80WriteTextFile(rel,content,"visual_editor_save"))});}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});}
-});
-app.post("/ide/api/history", async (request:any, reply) => {
-  try{const action=String(request.body?.action||"") as "undo"|"redo";if(!["undo","redo"].includes(action))throw new Error("action must be undo or redo");return reply.send(await v80UndoRedo(action,request.body?.file?String(request.body.file):undefined));}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});}
-});
-app.post("/ide/api/chat", async (request:any, reply) => {
-  try{const message=String(request.body?.message||"").trim();if(!message)throw new Error("message is required");let st=await v60ReadJson(V80_CHAT_CONTEXT_FILE,{messages:[],activeFile:null});st.activeFile=request.body?.activeFile||st.activeFile||null;st.messages=[...(st.messages||[]),{at:new Date().toISOString(),message,activeFile:st.activeFile}].slice(-100);await v60WriteJson(V80_CHAT_CONTEXT_FILE,st);return reply.send(st);}catch(error){return reply.code(400).send({error:error instanceof Error?error.message:String(error)});}
-});
-
 
 registerDeveloperRoutes(app, {
   platformStatus: v350PlatformStatus,
