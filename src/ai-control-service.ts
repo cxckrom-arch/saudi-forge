@@ -143,16 +143,18 @@ export function createAiControlService(options: {
     const source = await fs
       .readFile(path.join(kromHome, "server.ts"), "utf8")
       .catch(() => "");
-    const legacy = [
-      ...source.matchAll(/KROM FORGE DEV v(\d+(?:\.\d+)?)/g)
-    ].map((match) => match[0]);
-    const unique = [...new Set(legacy)];
+    const visibleLegacy = [
+      ...source.matchAll(/<title>\s*(KROM FORGE DEV v\d+(?:\.\d+)?)\s*<\/title>/g),
+      ...source.matchAll(/<div[^>]*class=["'][^"']*brand[^"']*["'][^>]*>\s*(KROM FORGE DEV v\d+(?:\.\d+)?)\s*<\/div>/g)
+    ].map((match) => match[1]);
+    const unique = [...new Set(visibleLegacy)];
+    const legacyMentions = unique.filter((item) => !item.includes(APP_DISPLAY_VERSION));
 
     return write("runtime-banner-audit.json", {
       version: APP_VERSION,
-      status: unique.some((item) => !item.includes(APP_DISPLAY_VERSION)) ? "REVIEW" : "PASS",
+      status: legacyMentions.length ? "REVIEW" : "PASS",
       activeBanner: `${APP_NAME} ${APP_DISPLAY_VERSION} - AI CONTROL CENTER`,
-      legacyMentions: unique.filter((item) => !item.includes(APP_DISPLAY_VERSION))
+      legacyMentions
     });
   }
 
