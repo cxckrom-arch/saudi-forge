@@ -31,6 +31,7 @@ import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-t
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
+import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
@@ -799,5 +800,15 @@ test('extracted v16-v20 registration preserves the 54-tool catalog', () => {
   for (const required of [
     'tool_search_v16','workflow_compile_v17','verified_execution_start_v18',
     'refactor_dependency_graph_v19','architecture_drift_scan_v20','self_healing_status_v20'
+  ]) assert.ok(names.includes(required), required);
+});
+
+test('extracted v21-v25 registration preserves the 63-tool catalog', () => {
+  const names:string[] = [];
+  registerV21V25Tools({ registerTool: (name:string) => { names.push(name); } } as any, {} as any);
+  assert.equal(names.length, 63);
+  for (const required of [
+    'test_impact_intelligence_v21','quality_policy_init_v22','architecture_fitness_v23',
+    'knowledge_graph_build_v24','design_token_audit_v25','design_intelligence_status_v25'
   ]) assert.ok(names.includes(required), required);
 });
