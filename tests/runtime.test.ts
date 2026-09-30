@@ -36,6 +36,7 @@ import { registerV38CouncilTools } from '../src/v38-council-tools.js';
 import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { registerV4ProductTools } from '../src/v4-product-tools.js';
 import { registerV5EngineeringSuiteTools } from '../src/v5-engineering-suite-tools.js';
+import { registerV6IdeCoreTools } from '../src/v6-ide-core-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -708,4 +709,17 @@ test('extracted v5 engineering suite catalog remains stable', () => {
     'model_router_v5','diagnostics_intelligence_v5','api_contract_intelligence_v5','database_architect_v5','security_auditor_v5',
     'performance_intelligence_v5','accessibility_auditor_v5','git_regression_guardian_v5','engineering_task_board_v5','engineering_suite_gate_v5'
   ]);
+});
+
+test('extracted v6 IDE core catalog remains stable', () => {
+  const names:string[] = [];
+  registerV6IdeCoreTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot: process.cwd(), maxFileSize: 1024*1024, diagnosticsFile:'d.json', workspaceFile:'w.json', pluginsFile:'p.json', gateFile:'g.json', port:3001,
+    result:(text:string)=>({content:[{type:'text',text}]}), errorResult:(error:unknown)=>({isError:true,error}),
+    v60Diagnostics:async()=>({status:'PASS',count:0,diagnostics:[],byFile:{}}), v60ReadJson:async()=>null, v60WorkspaceIndex:async()=>({count:0,hotspots:[],files:[]}),
+    walkProject:async()=>[], isTextFile:()=>true, normalizeRel:(v:string)=>v, v60GitFileDiff:async()=>({diff:''}), readPackageJson:async()=>({scripts:{}}), detectPackageManager:async()=>'npm',
+    executeProgram:async()=>({success:true,stdout:'',stderr:''}), v60PluginRegistry:async()=>({plugins:[]}), v60WriteJson:async()=>({}), readCodeIntelligenceGraph:async()=>null, v60ExecutionStream:async()=>({events:[]}), v50TaskBoard:async()=>({nodes:[]})
+  });
+  assert.equal(names.length,12);
+  assert.deepEqual(names, ['lsp_diagnostics_v6','error_markers_v6','smart_file_explorer_v6','workspace_search_v6','diff_editor_v6','terminal_manager_v6','plugin_manager_v6','mcp_manager_v6','refactor_planner_v6','execution_stream_v6','ide_workspace_v6','ide_release_gate_v6']);
 });
