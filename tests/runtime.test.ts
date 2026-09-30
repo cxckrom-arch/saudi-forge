@@ -828,3 +828,23 @@ test('server composition root contains no inline MCP tool registrations', async 
   const source = await fs.readFile(path.resolve('server.ts'), 'utf8');
   assert.equal((source.match(/server\\.registerTool\\(/g) || []).length, 0);
 });
+
+test('extracted prompt design service preserves generation and scoring behavior', () => {
+  assert.equal(sanitizePromptName('  Safety Board / V45  '), 'Safety-Board-V45');
+  const prompt = generatePrompt({
+    goal: 'Build a responsive safety dashboard',
+    projectType: 'Safety Board',
+    mode: 'full',
+    language: 'en',
+    autonomy: 'strong',
+    requirements: ['Preserve authentication'],
+    constraints: ['Do not weaken security'],
+    deliverables: ['Working dashboard'],
+    includeVerification: true
+  });
+  assert.match(prompt, /KROM FORGE EXECUTION PROMPT/);
+  assert.match(prompt, /VERIFICATION GATE/);
+  assert.ok(scorePrompt(prompt).score >= 80);
+  const visual = visualReviewScore('responsive hierarchy spacing typography contrast accessibility loading empty error mobile');
+  assert.ok(typeof visual.score === 'number');
+});
