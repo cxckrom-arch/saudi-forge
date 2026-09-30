@@ -10,9 +10,20 @@ export function registerV31BrowserTools(
     errorResult: ErrorResultFn;
     runLiveBrowserVision: (...args: any[]) => Promise<any>;
     readLatestLiveBrowserReport: () => Promise<any>;
+    recordCommandEvidence: (...args: any[]) => Promise<any>;
+    runNpmScriptIfPresent: (...args: any[]) => Promise<any>;
+    readExecutionManifest: () => Promise<any>;
   }
 ) {
-  const { result, errorResult, runLiveBrowserVision, readLatestLiveBrowserReport } = deps;
+  const {
+    result,
+    errorResult,
+    runLiveBrowserVision,
+    readLatestLiveBrowserReport,
+    recordCommandEvidence,
+    runNpmScriptIfPresent,
+    readExecutionManifest
+  } = deps;
 
   // =========================================================
   // v3.1 LIVE BROWSER VISION / REAL RENDER VERIFICATION
