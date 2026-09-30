@@ -81,6 +81,11 @@ The V37 modularization has started with:
 - `src/secret-manager.ts` — local provider secret loading, persistence, validation, provider credential actions, and secret-file isolation
 - `src/ai-control-service.ts` — AI control status, provider enable/priority control, quick model selection, route preview, and runtime audit
 - `src/developer-platform-service.ts` — v35 developer chat, routed provider calls, project scan, preview state, and platform status
+- `src/predictive-engineering-service.ts` — v3.9 change simulation, preflight checks, risk forecasting, and predictive engineering state
+- `src/learning-memory-service.ts` — v3.6 evidence-backed learning memory, task classification, and confidence scoring
+- `src/code-intelligence-service.ts` — v3.3 source graph, dependency reach, symbol/import analysis, and impact risk
+- `src/smart-context-service.ts` — v3.4 bounded project context selection and execution-strategy decisions
+- `src/repair-service.ts` — v3.2 repair-cycle state, findings, fingerprints, and likely-source localization
 - `src/developer-platform-ui.ts` — isolated developer-platform HTML renderer
 - `src/model-control-tools.ts` — v32–v35 MCP registration layer for provider/model/AI/developer tools
 - `src/network-policy.ts` — loopback-first host/origin policy
