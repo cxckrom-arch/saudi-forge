@@ -19,6 +19,7 @@ import { createAiControlService } from '../src/ai-control-service.js';
 import { APP_VERSION, APP_DISPLAY_VERSION } from '../src/release-info.js';
 import { renderDeveloperPlatformHtml } from '../src/developer-platform-ui.js';
 import { registerModelControlTools } from '../src/model-control-tools.js';
+import { createDeveloperPlatformService } from '../src/developer-platform-service.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -355,4 +356,41 @@ test('extracted model-control registration preserves v32-v35 tool catalog', () =
     'developer_platform_status_v35',
     'developer_platform_gate_v35'
   ]) assert.ok(names.includes(required), required);
+});
+
+test('extracted developer platform service preserves status and preview contracts', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-dev-platform-service-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  const previewFile = path.join(root, 'preview.json');
+  let previewState:any = null;
+  const service = createDeveloperPlatformService({
+    kromHome: root,
+    projectRoot: root,
+    previewFile,
+    v310RuntimeDoctor: async () => ({ status: 'PASS', blockers: [] }),
+    v320AuthHeaders: () => ({}),
+    v320NormalizeBase: (v:string) => v,
+    v320ProviderHealth: async () => ({ results: [] }),
+    v320ReadProfiles: async () => [],
+    v330SmartRoute: async () => ({ selected: null }),
+    v340ControlStatus: async () => ({ providers: [] }),
+    v60Diagnostics: async () => ({ status: 'PASS', count: 0, diagnostics: [], checks: [] }),
+    v60WriteJson: async (_file:string, state:any) => { previewState = state; return state; },
+    v80ReadTextFile: async () => '',
+    v80WorkbenchState: async () => ({ preview: { url: null }, editor: { activeFile: null } }),
+    v90DependencyDoctor: async () => ({ concerns: [] }),
+    v90Health: async () => ({ score: 100, grade: 'A' }),
+    executeProgram: async () => ({ success: true, stdout: '', stderr: '' })
+  });
+
+  const status = await service.platformStatus();
+  assert.equal(status.version, APP_VERSION);
+  assert.equal(status.status, 'READY');
+  assert.equal(status.project, root);
+
+  await assert.rejects(() => service.previewSet({ url: 'file:///tmp/test' }), /http:\/\/ or https:\/\//);
+  const saved = await service.previewSet({ url: 'http://127.0.0.1:5173' });
+  assert.equal(saved.version, APP_VERSION);
+  assert.equal(saved.status, 'SAVED');
+  assert.equal(previewState.url, 'http://127.0.0.1:5173');
 });
