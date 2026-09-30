@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { APP_VERSION } from "./release-info.js";
 import { chatMessages, completionUrl } from "./chat-context.js";
+import { createProviderReliabilityLedger } from "./provider-reliability-ledger.js";
 
 export function createDeveloperPlatformService(options: {
   kromHome: string;
@@ -47,6 +48,7 @@ export function createDeveloperPlatformService(options: {
 // ===== v35.0 DEVELOPER PLATFORM: CHAT + PREVIEW =====
 const V350_STATE_DIR = path.join(kromHome, ".krom", "v35-developer-platform");
 const V350_CHAT_FILE = path.join(V350_STATE_DIR, "chat-history.json");
+const v350ReliabilityLedger = createProviderReliabilityLedger({ directory: V350_STATE_DIR, now });
 async function v350Ensure(){ await fs.mkdir(V350_STATE_DIR,{recursive:true}); }
 async function v350ReadChat(){ await v350Ensure(); try{return JSON.parse(await fs.readFile(V350_CHAT_FILE,'utf8'));}catch{return {messages:[]};} }
 async function v350WriteChat(messages:any[]){ await v350Ensure(); const out={version:APP_VERSION,updatedAt:new Date().toISOString(),messages:messages.slice(-80)}; await fs.writeFile(V350_CHAT_FILE,JSON.stringify(out,null,2),'utf8'); return out; }
@@ -93,6 +95,7 @@ async function v350CircuitAdmission(providerId:string){
     const ok=!!health?.results?.[0]?.ok;
     if(ok){
       v350ProviderCircuits.delete(providerId);
+      await v350ReliabilityLedger.record({providerId,type:'RECOVERY_PROBE_PASS'});
       return {allowed:true,recovered:true,reason:'HEALTH_PROBE_PASS'};
     }
     const reopened:V350CircuitState={
@@ -103,6 +106,7 @@ async function v350CircuitAdmission(providerId:string){
       updatedAt:new Date(current).toISOString()
     };
     v350ProviderCircuits.set(providerId,reopened);
+    await v350ReliabilityLedger.record({providerId,type:'RECOVERY_PROBE_FAIL',error:reopened.lastError});
     return {allowed:false,recovered:false,reason:'HEALTH_PROBE_FAIL',openUntil:reopened.openUntil};
   }catch(error){
     const reopened:V350CircuitState={
@@ -113,6 +117,7 @@ async function v350CircuitAdmission(providerId:string){
       updatedAt:new Date(current).toISOString()
     };
     v350ProviderCircuits.set(providerId,reopened);
+    await v350ReliabilityLedger.record({providerId,type:'RECOVERY_PROBE_FAIL',error:reopened.lastError});
     return {allowed:false,recovered:false,reason:'HEALTH_PROBE_ERROR',openUntil:reopened.openUntil};
   }
 }
@@ -121,6 +126,7 @@ function v350CircuitFailure(providerId:string,error:unknown){
   const current=v350ProviderCircuits.get(providerId)||{failures:0,openUntil:0,phase:'CLOSED' as const,updatedAt:new Date(now()).toISOString()};
   const failures=current.failures+1;
   const opened=failures>=V350_CIRCUIT_FAILURE_THRESHOLD;
+  const newlyOpened=opened&&current.phase!=='OPEN';
   v350ProviderCircuits.set(providerId,{
     failures,
     phase:opened?'OPEN':'CLOSED',
@@ -129,6 +135,7 @@ function v350CircuitFailure(providerId:string,error:unknown){
     lastProbeAt:current.lastProbeAt,
     updatedAt:new Date(now()).toISOString()
   });
+  return {opened,newlyOpened,failures};
 }
 
 function v350CircuitSuccess(providerId:string){
@@ -217,6 +224,7 @@ async function v350AskModelImpl(input:{message:string;activeFile?:string|null;pr
   for(const providerId of candidateIds){
     const admission:any=await v350CircuitAdmission(providerId);
     if(!admission.allowed){
+      await v350ReliabilityLedger.record({providerId,type:'CIRCUIT_SKIP',error:admission.reason});
       attempts.push({
         providerId,
         status:'CIRCUIT_OPEN',
@@ -257,6 +265,17 @@ async function v350AskModelImpl(input:{message:string;activeFile?:string|null;pr
     try{
       const response=await v350CallProvider(profile,model,messagesForModel);
       v350CircuitSuccess(profile.id);
+      await v350ReliabilityLedger.record({
+        providerId:profile.id,
+        provider:profile.name,
+        model,
+        type:'REQUEST_PASS',
+        latencyMs:response.latencyMs,
+        httpStatus:response.httpStatus
+      });
+      if(attempts.some((x:any)=>x.status==='FAIL'||x.status==='CIRCUIT_OPEN')){
+        await v350ReliabilityLedger.record({providerId:profile.id,provider:profile.name,model,type:'FAILOVER'});
+      }
       attempts.push({
         providerId:profile.id,
         provider:profile.name,
@@ -296,7 +315,23 @@ async function v350AskModelImpl(input:{message:string;activeFile?:string|null;pr
         attempts
       };
     }catch(error){
-      v350CircuitFailure(profile.id,error);
+      const circuitResult=v350CircuitFailure(profile.id,error);
+      await v350ReliabilityLedger.record({
+        providerId:profile.id,
+        provider:profile.name,
+        model,
+        type:'REQUEST_FAIL',
+        error:v350SafeError(error)
+      });
+      if(circuitResult.newlyOpened){
+        await v350ReliabilityLedger.record({
+          providerId:profile.id,
+          provider:profile.name,
+          model,
+          type:'CIRCUIT_OPEN',
+          error:v350SafeError(error)
+        });
+      }
       attempts.push({
         providerId:profile.id,
         provider:profile.name,
@@ -324,7 +359,7 @@ async function v350FullScan(){
   return {version:APP_VERSION,status:blockers.length?'ISSUES_FOUND':needsReview?'REVIEW':'READY',projectRoot:projectRoot,blockers,checks:diag.checks,summary:{runtime:runtime.status,diagnostics:diag.status,errorCount:errors.length,warningCount:warnings.length,dependencyStatus:deps.concerns.some((x:any)=>x.severity==='warning')?'REVIEW':'READY',healthStatus:health.grade||'UNKNOWN',gitStatus:git.success?'AVAILABLE':'UNAVAILABLE',gitDirty:git.success?!!String(git.stdout||'').trim():null},errors:errors.slice(0,100),warnings:warnings.slice(0,100),dependencies:deps,health,git:git.success?git.stdout:(git.stderr||git.message)};
 }
 async function v350PreviewSet(input:{url:string}){ const url=String(input.url||'').trim(); if(url && !/^https?:\/\//i.test(url)) throw new Error('Preview URL must start with http:// or https://'); const state={status:url?'CONFIGURED':'IDLE',url:url||null,viewport:{width:1440,height:900},lastChecked:new Date().toISOString()}; await v60WriteJson(previewFile,state); return {version:APP_VERSION,status:'SAVED',preview:state}; }
-async function v350PlatformStatus(){ const [state,control,chat]=await Promise.all([v80WorkbenchState(),v340ControlStatus(),v350ReadChat()]); return {version:APP_VERSION,status:'READY',project:projectRoot,preview:state.preview,providers:control.providers,providerCircuits:v350CircuitSnapshot(),chatMessages:(chat.messages||[]).slice(-30),activeFile:state.editor?.activeFile||null}; }
+async function v350PlatformStatus(){ const [state,control,chat,reliability]=await Promise.all([v80WorkbenchState(),v340ControlStatus(),v350ReadChat(),v350ReliabilityLedger.summary()]); return {version:APP_VERSION,status:'READY',project:projectRoot,preview:state.preview,providers:control.providers,providerCircuits:v350CircuitSnapshot(),providerReliability:reliability,chatMessages:(chat.messages||[]).slice(-30),activeFile:state.editor?.activeFile||null}; }
 
 
   return {
@@ -334,6 +369,8 @@ async function v350PlatformStatus(){ const [state,control,chat]=await Promise.al
     askModel: v350AskModel,
     fullScan: v350FullScan,
     previewSet: v350PreviewSet,
-    platformStatus: v350PlatformStatus
+    platformStatus: v350PlatformStatus,
+    reliabilitySummary: () => v350ReliabilityLedger.summary(),
+    reliabilityRecent: (limit?:number) => v350ReliabilityLedger.recent(limit)
   };
 }
