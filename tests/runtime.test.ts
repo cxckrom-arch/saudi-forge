@@ -365,7 +365,7 @@ test('developer platform renderer uses supplied release identity and escapes dyn
     state: { providers: [{ enabled: true, name: '<Mock>' }], preview: { url: '' }, chatMessages: [] },
     projectRoot: 'C:\\SAFE<&>',
     appName: 'KSA-FORGE-DEV',
-    appDisplayVersion: 'v45.0'
+    appDisplayVersion: 'v46.0'
   });
   assert.match(html, /KSA-FORGE-DEV/);
   assert.match(html, /v45\.0/);
