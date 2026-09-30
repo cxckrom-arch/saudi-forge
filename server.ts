@@ -22,6 +22,7 @@ import { registerDeveloperRoutes } from './src/developer-routes.js';
 import { registerWorkspaceRoutes } from './src/workspace-routes.js';
 import { createDiagnosticsService } from './src/diagnostics-service.js';
 import { createProviderStore, type ProviderKind as V320ProviderKind, type ProviderProfile as V320Profile } from './src/provider-store.js';
+import { createProviderService } from './src/provider-service.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4603,28 +4604,18 @@ const v320ModelsUrl = v320ProviderStore.modelsUrl;
 const v320ExtractModels = v320ProviderStore.extractModels;
 
 async function v320Write(name:string,data:any){ await v320Ensure(); const out={generatedAt:new Date().toISOString(),...data}; await fs.writeFile(path.join(V320_STATE_DIR,name),JSON.stringify(out,null,2),'utf8'); return out; }
-async function v320FetchJson(url:string,profile:V320Profile){
-  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),Math.max(1000,profile.timeoutMs||5000));
-  try{ const r=await fetch(url,{headers:v320AuthHeaders(profile),signal:ctrl.signal}); const text=await r.text(); let data:any=null; try{data=text?JSON.parse(text):null}catch{data=text.slice(0,500)}; return {ok:r.ok,status:r.status,data}; }
-  catch(e:any){ return {ok:false,status:0,error:String(e?.name==='AbortError'?'timeout':e?.message||e)}; }
-  finally{ clearTimeout(timer); }
-}
+const v320ProviderService = createProviderService({
+  store: v320ProviderStore,
+  writeState: v320Write,
+  profilesFile: V320_PROFILES_FILE
+});
+const v320FetchJson = v320ProviderService.fetchJson;
+const v320ProfileUpsert = v320ProviderService.profileUpsert;
+const v320Profiles = v320ProviderService.profiles;
+const v320ProviderHealth = v320ProviderService.providerHealth;
+const v320ModelDiscover = v320ProviderService.modelDiscover;
+const v320SelectModel = v320ProviderService.selectModel;
 
-async function v320ProfileUpsert(input:any){
-  const profiles=await v320ReadProfiles(); const id=v320SafeId(input.id||input.name); if(!id) throw new Error('Provider id/name is required.');
-  const baseUrl=v320NormalizeBase(input.baseUrl); if(!/^https?:\/\//i.test(baseUrl)) throw new Error('baseUrl must use http:// or https://');
-  const next:V320Profile={id,name:String(input.name||id),kind:input.kind,baseUrl,apiKeyEnv:input.apiKeyEnv?String(input.apiKeyEnv):undefined,defaultModel:input.defaultModel?String(input.defaultModel):undefined,enabled:input.enabled!==false,priority:Number(input.priority??50),timeoutMs:Number(input.timeoutMs??7000)};
-  const idx=profiles.findIndex(x=>x.id===id); if(idx>=0)profiles[idx]={...profiles[idx],...next}; else profiles.push(next); await v320SaveProfiles(profiles);
-  return v320Write(`profile-${id}.json`,{version:'32.1.0',status:'SAVED',profile:{...next,credentialConfigured:next.apiKeyEnv?!!process.env[next.apiKeyEnv]:next.kind==='ollama'||next.kind==='gpt4all'},note:'API key values are never persisted; only environment variable names are stored.'});
-}
-async function v320Profiles(){ const profiles=await v320ReadProfiles(); return {version:'32.1.0',status:'READY',profiles:profiles.sort((a,b)=>a.priority-b.priority).map(p=>({...p,credentialConfigured:p.apiKeyEnv?!!process.env[p.apiKeyEnv]:p.kind==='ollama'||p.kind==='gpt4all'})),file:V320_PROFILES_FILE}; }
-async function v320ProviderHealth(input:{providerId?:string}){
-  const profiles=(await v320ReadProfiles()).filter(p=>p.enabled && (!input.providerId||p.id===input.providerId)); const results:any[]=[];
-  for(const p of profiles){ const started=Date.now(); const r=await v320FetchJson(v320ModelsUrl(p),p); results.push({providerId:p.id,name:p.name,kind:p.kind,ok:r.ok,status:r.status,latencyMs:Date.now()-started,credentialConfigured:p.apiKeyEnv?!!process.env[p.apiKeyEnv]:true,error:(r as any).error||undefined,models:r.ok?v320ExtractModels(p,(r as any).data).slice(0,50):[]}); }
-  return v320Write('provider-health.json',{version:'32.1.0',status:results.some(x=>x.ok)?'AVAILABLE':'UNAVAILABLE',results});
-}
-async function v320ModelDiscover(input:{providerId?:string}){ const health:any=await v320ProviderHealth(input); return v320Write('model-discovery.json',{version:'32.1.0',status:health.results?.some((x:any)=>x.ok)?'READY':'NO_PROVIDER_AVAILABLE',providers:(health.results||[]).map((x:any)=>({providerId:x.providerId,ok:x.ok,models:x.models||[],latencyMs:x.latencyMs}))}); }
-async function v320SelectModel(input:{providerId:string;model:string}){ const profiles=await v320ReadProfiles(); const idx=profiles.findIndex(p=>p.id===input.providerId); if(idx<0)throw new Error(`Unknown provider: ${input.providerId}`); profiles[idx].defaultModel=String(input.model); await v320SaveProfiles(profiles); return v320Write('selected-model.json',{version:'32.1.0',status:'SAVED',providerId:input.providerId,model:input.model}); }
 async function v320RoutingPolicy(input:{codingProvider?:string;codingModel?:string;planningProvider?:string;planningModel?:string;generalProvider?:string;generalModel?:string;designProvider?:string;designModel?:string}){
   await v320Ensure(); const current=await (async()=>{try{return JSON.parse(await fs.readFile(V320_ROUTING_FILE,'utf8'))}catch{return {}}})(); const policy={version:'32.1.0',updatedAt:new Date().toISOString(),routes:{...(current.routes||{}),coding:{providerId:input.codingProvider||current.routes?.coding?.providerId,model:input.codingModel||current.routes?.coding?.model},planning:{providerId:input.planningProvider||current.routes?.planning?.providerId,model:input.planningModel||current.routes?.planning?.model},general:{providerId:input.generalProvider||current.routes?.general?.providerId,model:input.generalModel||current.routes?.general?.model},design:{providerId:input.designProvider||current.routes?.design?.providerId,model:input.designModel||current.routes?.design?.model}}}; await fs.writeFile(V320_ROUTING_FILE,JSON.stringify(policy,null,2),'utf8'); return v320Write('routing-policy-status.json',{status:'SAVED',...policy});
 }
