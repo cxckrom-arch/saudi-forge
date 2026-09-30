@@ -1,4 +1,5 @@
 import type { ProviderProfile } from "./provider-store.js";
+import { APP_VERSION } from "./release-info.js";
 
 type ProviderStore = {
   normalizeBase(baseUrl: string): string;
@@ -89,7 +90,8 @@ export function createProviderService(options: {
     await store.saveProfiles(profiles);
 
     return writeState(`profile-${id}.json`, {
-      version: "32.1.0",
+      version: APP_VERSION,
+      schemaVersion: "32.1.0",
       status: "SAVED",
       profile: {
         ...next,
@@ -104,7 +106,8 @@ export function createProviderService(options: {
   async function profiles() {
     const profiles = await store.readProfiles();
     return {
-      version: "32.1.0",
+      version: APP_VERSION,
+      schemaVersion: "32.1.0",
       status: "READY",
       profiles: profiles
         .sort((a, b) => a.priority - b.priority)
@@ -147,7 +150,8 @@ export function createProviderService(options: {
     }
 
     return writeState("provider-health.json", {
-      version: "32.1.0",
+      version: APP_VERSION,
+      schemaVersion: "32.1.0",
       status: results.some((item) => item.ok) ? "AVAILABLE" : "UNAVAILABLE",
       results
     });
@@ -156,7 +160,8 @@ export function createProviderService(options: {
   async function modelDiscover(input: { providerId?: string }) {
     const health: any = await providerHealth(input);
     return writeState("model-discovery.json", {
-      version: "32.1.0",
+      version: APP_VERSION,
+      schemaVersion: "32.1.0",
       status: health.results?.some((item: any) => item.ok)
         ? "READY"
         : "NO_PROVIDER_AVAILABLE",
@@ -178,7 +183,8 @@ export function createProviderService(options: {
     await store.saveProfiles(profiles);
 
     return writeState("selected-model.json", {
-      version: "32.1.0",
+      version: APP_VERSION,
+      schemaVersion: "32.1.0",
       status: "SAVED",
       providerId: input.providerId,
       model: input.model
