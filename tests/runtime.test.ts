@@ -35,6 +35,7 @@ import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
 import { registerV38CouncilTools } from '../src/v38-council-tools.js';
 import { registerV39PredictiveTools } from '../src/v39-predictive-tools.js';
 import { registerV4ProductTools } from '../src/v4-product-tools.js';
+import { registerV5EngineeringSuiteTools } from '../src/v5-engineering-suite-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -679,4 +680,32 @@ test('extracted v4 product engineering catalog remains stable', () => {
     kromStatePath: async (file:string) => file
   });
   assert.deepEqual(names, ['product_blueprint','acceptance_contract_generate','feature_completeness_matrix','product_gap_detector','product_release_readiness']);
+});
+
+test('extracted v5 engineering suite catalog remains stable', () => {
+  const names:string[] = [];
+  registerV5EngineeringSuiteTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot: process.cwd(),
+    taskBoardFile: 'task-board.json',
+    auditFile: 'audit.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    v50TaskKind: () => 'code',
+    runPackageScript: async () => ({ status: 'SKIPPED' }),
+    v50ApiContractScan: async () => ({ endpoints: [], clients: [] }),
+    v50DatabaseScan: async () => [],
+    v50ScanPatterns: async () => [],
+    walkProject: async () => [],
+    executeProgram: async () => ({ success: true, stdout: '', stderr: '' }),
+    readCodeIntelligenceGraph: async () => null,
+    normalizeRel: (v:string) => v,
+    v50TaskBoard: async () => ({ nodes: [] }),
+    readProductBlueprint: async () => null,
+    scanFeatureEvidence: async () => ({ score: 0 }),
+    kromStatePath: async (file:string) => file
+  });
+  assert.deepEqual(names, [
+    'model_router_v5','diagnostics_intelligence_v5','api_contract_intelligence_v5','database_architect_v5','security_auditor_v5',
+    'performance_intelligence_v5','accessibility_auditor_v5','git_regression_guardian_v5','engineering_task_board_v5','engineering_suite_gate_v5'
+  ]);
 });
