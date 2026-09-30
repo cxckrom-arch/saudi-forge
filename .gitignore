@@ -16,3 +16,5 @@
 .env.*
 *.env
 .krom-secrets/
+.krom-secrets/
+node_modules/
