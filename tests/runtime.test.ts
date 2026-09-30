@@ -30,6 +30,7 @@ import { registerV32RepairTools } from '../src/v32-repair-tools.js';
 import { registerV33CodeIntelligenceTools } from '../src/v33-code-intelligence-tools.js';
 import { registerV34ContextDecisionTools } from '../src/v34-context-decision-tools.js';
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
+import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -577,4 +578,27 @@ test('extracted v3.5 adaptive runtime catalog remains stable', () => {
     chooseAgentForTask: () => ({ selectedAgent: 'developer', reason: 'test' })
   });
   assert.deepEqual(names, ['task_decomposition_graph','task_graph_update','adaptive_agent_route','runtime_outcome','adaptive_runtime_status']);
+});
+
+test('extracted v3.6 learning and confidence catalog remains stable', () => {
+  const names:string[] = [];
+  registerV36LearningTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    smartContextFile: 'smart-context.json',
+    learningMemoryFile: 'learning-memory.json',
+    decisionLedgerFile: 'decision-ledger.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    readLearningMemory: async () => [],
+    writeLearningMemory: async () => {},
+    taskTypeOf: () => 'general',
+    clampConfidence: (v:number) => v,
+    summarizeLessons: () => ({}),
+    kromStatePath: async (file:string) => file,
+    assessDecisionConfidence: () => ({ band: 'HIGH' }),
+    buildSmartContext: async () => ({ query: '', selected: [], omittedHighRisk: [] }),
+    decideExecutionStrategy: () => ({ mode: 'SAFE', risk: 'LOW' }),
+    readRuntimeHistory: async () => [],
+    chooseAgentForTask: () => ({ selectedAgent: 'developer', alternatives: [], reason: 'test' })
+  });
+  assert.deepEqual(names, ['learning_memory_record','learning_memory_recall','decision_confidence','adaptive_strategy_advisor','learning_memory_status']);
 });
