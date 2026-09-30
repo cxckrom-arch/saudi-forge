@@ -11,7 +11,7 @@ import { promisify } from "node:util";
 import { ToolRuntime, automationInput, outcome } from './src/tool-runtime.js';
 import { resolveCommand } from './src/process-command.js';
 import { chatMessages, completionUrl } from './src/chat-context.js';
-import { MAX_FILE_SIZE, createProjectContext } from './src/project-context.js';
+import { MAX_FILE_SIZE, IGNORED_DIRS, TEXT_EXTENSIONS, createProjectContext } from './src/project-context.js';
 import { createPackageRunner } from './src/package-runner.js';
 const execFileAsync = promisify(execFile);
 
