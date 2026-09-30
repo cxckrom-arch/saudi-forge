@@ -34,6 +34,7 @@ import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-too
 import { createPredictiveEngineeringService } from '../src/predictive-engineering-service.js';
 import { createLearningMemoryService } from '../src/learning-memory-service.js';
 import { createCodeIntelligenceService } from '../src/code-intelligence-service.js';
+import { createSmartContextService } from '../src/smart-context-service.js';
 import { registerV16V20Tools } from '../src/v16-v20-tools.js';
 import { registerV21V25Tools } from '../src/v21-v25-tools.js';
 import { registerV26V31Tools } from '../src/v26-v31-tools.js';
@@ -1020,4 +1021,30 @@ test('code intelligence service builds local dependency graph and impact risk', 
   assert.ok(reach.all.includes('src/b.ts'));
   const risk=service.riskForImpact(['src/a.ts'],['src/b.ts'],['/a'],false,false);
   assert.ok(['LOW','MEDIUM','HIGH'].includes(risk.level));
+});
+
+test('smart context service selects relevant files and produces conservative strategy', async t => {
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'krom-smart-context-'));
+  t.after(async()=>{await fs.rm(root,{recursive:true,force:true});});
+  const graph={
+    nodes:{
+      'src/auth.ts':{file:'src/auth.ts',imports:[],importedBy:['src/page.tsx'],exports:['login'],symbols:['login'],routes:[],kind:'service'},
+      'src/page.tsx':{file:'src/page.tsx',imports:['src/auth.ts'],importedBy:[],exports:['Page'],symbols:['Page'],routes:['/login'],kind:'route-or-page'}
+    },
+    unresolvedImports:[]
+  };
+  const service=createSmartContextService({
+    projectRoot:root,
+    readProjectMemory:async()=>({stack:['ts'],conventions:[],designRules:[],recentDecisions:[]}),
+    readExecutionManifest:async()=>({changedFiles:['src/auth.ts']}),
+    readCodeIntelligenceGraph:async()=>graph,
+    buildCodeIntelligenceGraph:async()=>graph,
+    dependencyReach:()=>({all:[]}),
+    kromStatePath:async(file:string)=>path.join(root,file)
+  });
+  const bundle=await service.buildSmartContext('fix login auth',10,50000,false);
+  assert.ok(bundle.selected.some((x:any)=>x.file==='src/auth.ts'));
+  const strategy=service.decideExecutionStrategy('fix login auth bug',bundle);
+  assert.equal(strategy.mode,'REPAIR');
+  assert.ok(strategy.agents.includes('Developer'));
 });
