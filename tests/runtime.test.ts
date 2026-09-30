@@ -41,6 +41,7 @@ import { registerV7VisualIdeTools } from '../src/v7-visual-ide-tools.js';
 import { registerV8WorkbenchTools } from '../src/v8-workbench-tools.js';
 import { registerV9EngineeringOpsTools } from '../src/v9-engineering-ops-tools.js';
 import { registerV10SoftwareFactoryTools } from '../src/v10-software-factory-tools.js';
+import { registerV11ReliabilityTools } from '../src/v11-reliability-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -777,4 +778,15 @@ test('extracted v10 software factory catalog remains stable', () => {
   });
   assert.equal(names.length,11);
   assert.deepEqual(names, ['spec_to_code_pipeline_v10','architecture_graph_v10','migration_planner_v10','e2e_scenario_generator_v10','visual_regression_manager_v10','release_notes_generator_v10','cicd_orchestrator_v10','quality_budget_v10','engineering_telemetry_v10','project_blueprints_v10','software_factory_status_v10']);
+});
+
+test('extracted v11 reliability catalog remains stable', () => {
+  const names:string[]=[];
+  registerV11ReliabilityTools({registerTool:(name:string)=>{names.push(name);}} as any,{
+    observabilityFile:'o.json',replayFile:'r.json',resilienceFile:'res.json',contractFile:'c.json',deployFile:'d.json',rollbackFile:'rb.json',sloFile:'slo.json',dependencyRiskFile:'dr.json',dataIntegrityFile:'di.json',productionReadinessFile:'pr.json',
+    result:(text:string)=>({content:[{type:'text',text}]}),errorResult:(error:unknown)=>({isError:true,error}),
+    v110Observability:async()=>({}),v110FailureReplay:async()=>({}),v110Resilience:async()=>({}),v110ContractTests:async()=>({}),v110FeatureFlags:async()=>({}),v110DeploymentStrategy:async()=>({}),v110RollbackPlan:async()=>({}),v110SloGate:async()=>({}),v110DependencyRisk:async()=>({}),v110DataIntegrity:async()=>({}),v110ProductionReadiness:async()=>({})
+  });
+  assert.equal(names.length,11);
+  assert.deepEqual(names,['observability_center_v11','failure_replay_v11','resilience_lab_v11','contract_test_planner_v11','feature_flag_manager_v11','deployment_strategy_v11','rollback_automation_plan_v11','slo_release_gate_v11','dependency_risk_monitor_v11','data_integrity_guard_v11','production_readiness_review_v11']);
 });
