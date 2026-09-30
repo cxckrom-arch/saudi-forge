@@ -429,6 +429,68 @@ test('extracted developer platform service preserves status and preview contract
   assert.equal(previewState.url, 'http://127.0.0.1:5173');
 });
 
+test('developer chat fails over to the next healthy routed provider', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-dev-chat-failover-'));
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+  const originalFetch = globalThis.fetch;
+  const calls:string[] = [];
+  globalThis.fetch = (async (url:any) => {
+    const target = String(url);
+    calls.push(target);
+    if (target.includes('primary.example')) {
+      return new Response(JSON.stringify({ error: { message: 'rate limited' } }), {
+        status: 429,
+        headers: { 'content-type': 'application/json' }
+      });
+    }
+    return new Response(JSON.stringify({
+      choices: [{ message: { content: 'fallback response' } }]
+    }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    });
+  }) as any;
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const profiles:any[] = [
+    { id: 'primary', name: 'Primary', kind: 'openai-compatible', baseUrl: 'https://primary.example/v1', enabled: true, priority: 1, timeoutMs: 1000, defaultModel: 'model-a' },
+    { id: 'backup', name: 'Backup', kind: 'openai-compatible', baseUrl: 'https://backup.example/v1', enabled: true, priority: 2, timeoutMs: 1000, defaultModel: 'model-b' }
+  ];
+
+  const service = createDeveloperPlatformService({
+    kromHome: root,
+    projectRoot: root,
+    previewFile: path.join(root, 'preview.json'),
+    v310RuntimeDoctor: async () => ({ status: 'PASS', blockers: [] }),
+    v320AuthHeaders: () => ({}),
+    v320NormalizeBase: (v:string) => v,
+    v320ProviderHealth: async () => ({ results: [] }),
+    v320ReadProfiles: async () => profiles,
+    v330SmartRoute: async () => ({
+      selected: { providerId: 'primary', provider: 'Primary', model: 'model-a' },
+      candidates: [
+        { providerId: 'primary', provider: 'Primary', model: 'model-a', healthy: true, score: 95 },
+        { providerId: 'backup', provider: 'Backup', model: 'model-b', healthy: true, score: 88 }
+      ]
+    }),
+    v340ControlStatus: async () => ({ providers: profiles }),
+    v60Diagnostics: async () => ({ status: 'PASS', count: 0, diagnostics: [], checks: [] }),
+    v60WriteJson: async (_file:string, state:any) => state,
+    v80ReadTextFile: async () => '',
+    v80WorkbenchState: async () => ({ preview: { url: null }, editor: { activeFile: null } }),
+    v90DependencyDoctor: async () => ({ concerns: [] }),
+    v90Health: async () => ({ score: 100, grade: 'A' }),
+    executeProgram: async () => ({ success: true, stdout: '', stderr: '' })
+  });
+
+  const reply:any = await service.askModel({ message: 'fix this bug' });
+  assert.equal(reply.answer, 'fallback response');
+  assert.equal(reply.providerId, 'backup');
+  assert.equal(reply.failoverUsed, true);
+  assert.deepEqual(reply.attempts.map((x:any) => x.status), ['FAIL','PASS']);
+  assert.equal(calls.length, 2);
+});
+
 test('extracted core project registration preserves the 14-tool catalog', () => {
   const names:string[] = [];
   const server:any = { registerTool: (name:string) => { names.push(name); } };
