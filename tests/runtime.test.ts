@@ -32,6 +32,7 @@ import { registerV34ContextDecisionTools } from '../src/v34-context-decision-too
 import { registerV35AdaptiveRuntimeTools } from '../src/v35-adaptive-runtime-tools.js';
 import { registerV36LearningTools } from '../src/v36-learning-tools.js';
 import { registerV37AutopilotTools } from '../src/v37-autopilot-tools.js';
+import { registerV38CouncilTools } from '../src/v38-council-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -626,4 +627,21 @@ test('extracted v3.7 autopilot catalog remains stable', () => {
     restoreAutopilotCheckpoint: async () => []
   });
   assert.deepEqual(names, ['engineering_autopilot_start','autopilot_checkpoint','autopilot_quality_watchdog','autopilot_rollback','engineering_autopilot_status']);
+});
+
+test('extracted v3.8 council catalog remains stable', () => {
+  const names:string[] = [];
+  registerV38CouncilTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    councilHistoryFile: 'council-history.json',
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error }),
+    createCouncilSession: async () => ({}),
+    readCouncilState: async () => null,
+    writeCouncilState: async () => {},
+    appendCouncilHistory: async () => {},
+    resolveCouncilConsensus: () => ({ status: 'BLOCKED' }),
+    clampConfidence: (v:number) => v,
+    kromStatePath: async (file:string) => file
+  });
+  assert.deepEqual(names, ['engineering_council_convene','council_submit_opinion','execution_consensus','council_conflict_resolver','engineering_council_status']);
 });
