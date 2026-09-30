@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { ProviderProfile } from "./provider-store.js";
+import { APP_VERSION } from "./release-info.js";
 
 export function createSecretManager(options: {
   kromHome: string;
@@ -91,7 +92,8 @@ export function createSecretManager(options: {
 
     await persistSecret(profile.apiKeyEnv, input.apiKey);
     return {
-      version: "34.5.0",
+      version: APP_VERSION,
+      schemaVersion: "34.5.0",
       status: "SAVED",
       providerId: profile.id,
       credentialConfigured: true,
@@ -107,7 +109,8 @@ export function createSecretManager(options: {
     const health = await providerHealth({ providerId: input.providerId });
     const provider = (health.results || [])[0] || null;
     return {
-      version: "34.5.0",
+      version: APP_VERSION,
+      schemaVersion: "34.5.0",
       status: provider?.ok ? "PASS" : "FAIL",
       provider
     };
@@ -116,7 +119,8 @@ export function createSecretManager(options: {
   async function setDefault(input: { providerId: string; model: string }) {
     const result = await selectModel(input);
     return {
-      version: "34.5.0",
+      version: APP_VERSION,
+      schemaVersion: "34.5.0",
       status: "SAVED",
       providerId: input.providerId,
       model: input.model,
