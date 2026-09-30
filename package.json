@@ -1,14 +1,16 @@
 {
   "name": "ksa-forge-dev",
-  "version": "36.0.0",
+  "version": "37.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
     "start": "tsx server.ts",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "test:integration": "node tests/integration.mjs"
+    "test:integration": "node tests/integration.mjs",
+    "verify": "npm run typecheck && npm test"
   },
   "dependencies": {
     "@modelcontextprotocol/fastify": "2.0.0",
