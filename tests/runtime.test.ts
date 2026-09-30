@@ -14,6 +14,7 @@ import { createProviderStore } from '../src/provider-store.js';
 import { latencyScore, taskAffinity } from '../src/adaptive-model-service.js';
 import { classifyTask } from '../src/provider-routing.js';
 import { createSecretManager } from '../src/secret-manager.js';
+import { createAiControlService } from '../src/ai-control-service.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -202,4 +203,44 @@ test('secret manager validates names and strips line breaks',async t=>{
   assert.equal(env.GOOD_KEY,'abc12345');
   const text=await fs.readFile(manager.secretsFile(),'utf8');
   assert.equal(text,'GOOD_KEY=abc12345\n');
+});
+
+test('AI control banner audit ignores legacy comments but catches visible stale UI', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'krom-ai-control-'));
+  const stateDir = path.join(root, '.krom');
+  t.after(async () => { await fs.rm(root, { recursive: true, force: true }); });
+
+  const service = createAiControlService({
+    stateDir,
+    kromHome: root,
+    projectRoot: root,
+    port: 3001,
+    routingFile: path.join(root, 'routing.json'),
+    profiles: async () => ({ profiles: [] }),
+    reliability: async () => ({ providers: [] }),
+    readProfiles: async () => [],
+    saveProfiles: async () => {},
+    selectModel: async () => ({}),
+    routingPolicy: async () => ({}),
+    routeExplain: async () => ({})
+  });
+
+  await fs.writeFile(
+    path.join(root, 'server.ts'),
+    '// KROM FORGE DEV v11.0 - historical section label\n<title>${APP_NAME} ${APP_DISPLAY_VERSION}</title>\n',
+    'utf8'
+  );
+  const clean = await service.runtimeBannerAudit();
+  assert.equal(clean.version, '45.0.0');
+  assert.equal(clean.status, 'PASS');
+  assert.deepEqual(clean.legacyMentions, []);
+
+  await fs.writeFile(
+    path.join(root, 'server.ts'),
+    '<title>KROM FORGE DEV v34.5</title>\n',
+    'utf8'
+  );
+  const stale = await service.runtimeBannerAudit();
+  assert.equal(stale.status, 'REVIEW');
+  assert.deepEqual(stale.legacyMentions, ['KROM FORGE DEV v34.5']);
 });
