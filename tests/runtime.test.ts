@@ -38,6 +38,7 @@ import { registerV4ProductTools } from '../src/v4-product-tools.js';
 import { registerV5EngineeringSuiteTools } from '../src/v5-engineering-suite-tools.js';
 import { registerV6IdeCoreTools } from '../src/v6-ide-core-tools.js';
 import { registerV7VisualIdeTools } from '../src/v7-visual-ide-tools.js';
+import { registerV8WorkbenchTools } from '../src/v8-workbench-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -736,4 +737,18 @@ test('extracted v7 visual IDE catalog remains stable', () => {
   });
   assert.equal(names.length,11);
   assert.deepEqual(names, ['visual_ide_workspace_v7','panel_layout_v7','problems_panel_v7','agent_model_selector_v7','preview_session_v7','git_panel_v7','task_board_panel_v7','command_palette_v7','ui_theme_v7','workspace_snapshot_v7','visual_ide_gate_v7']);
+});
+
+test('extracted v8 workbench catalog remains stable', () => {
+  const names:string[] = [];
+  registerV8WorkbenchTools({ registerTool: (name:string) => { names.push(name); } } as any, {
+    projectRoot:process.cwd(), editorStateFile:'editor.json', editHistoryFile:'history.json', chatContextFile:'chat.json', diagnosticsFile:'diag.json',
+    result:(text:string)=>({content:[{type:'text',text}]}), errorResult:(error:unknown)=>({isError:true,error}),
+    v80WorkbenchState:async()=>({}), v80ReadTextFile:async()=>'', v80EditorState:async()=>({tabs:[],activeFile:null}), normalizeRel:(v:string)=>v, v60WriteJson:async()=>({}),
+    v80WriteTextFile:async()=>({}), v80ApplyReplacement:async()=>({}), v60ReadJson:async()=>[], v80UndoRedo:async()=>({}), v60Diagnostics:async()=>({status:'PASS',diagnostics:[]}),
+    readPackageJson:async()=>({scripts:{}}), detectPackageManager:async()=>'npm', executeProgram:async()=>({success:true,stdout:'',stderr:''}), safePath:(v:string)=>v,
+    v50TaskBoard:async()=>({nodes:[]}), v70PreviewState:async()=>({url:null})
+  });
+  assert.equal(names.length,10);
+  assert.deepEqual(names, ['workbench_state_v8','editor_open_file_v8','editor_save_file_v8','apply_patch_v8','edit_history_v8','editor_problems_v8','ai_file_context_v8','terminal_script_v8','git_commit_v8','workbench_gate_v8']);
 });
