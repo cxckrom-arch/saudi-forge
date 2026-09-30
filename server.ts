@@ -46,6 +46,7 @@ import { createAutopilotService } from './src/autopilot-service.js';
 import { createCouncilService } from './src/council-service.js';
 import { registerV38CouncilTools } from './src/v38-council-tools.js';
 import { registerV39PredictiveTools } from './src/v39-predictive-tools.js';
+import { createPredictiveEngineeringService } from './src/predictive-engineering-service.js';
 import { registerV4ProductTools } from './src/v4-product-tools.js';
 import { registerV5EngineeringSuiteTools } from './src/v5-engineering-suite-tools.js';
 import { registerV6IdeCoreTools } from './src/v6-ide-core-tools.js';
@@ -1020,123 +1021,24 @@ const resolveCouncilConsensus=v38CouncilService.resolveConsensus;
 // =========================================================
 // KROM v3.9 PREDICTIVE ENGINEERING + CHANGE SIMULATION
 // =========================================================
-const CHANGE_SIMULATION_FILE = "change-simulation.json";
-const PREFLIGHT_HISTORY_FILE = "preflight-history.json";
-
-type ChangeSimulation = {
-  version: 1;
-  id: string;
-  generatedAt: string;
-  task: string;
-  targetFiles: string[];
-  affectedFiles: string[];
-  affectedRoutes: string[];
-  dependencies: string[];
-  dependents: string[];
-  dataFiles: string[];
-  configFiles: string[];
-  risk: { score: number; level: "LOW"|"MEDIUM"|"HIGH"; reasons: string[] };
-  verificationPlan: string[];
-  rollbackPlan: string[];
-  unresolvedImports: Array<{from:string;specifier:string}>;
-};
-
-async function appendPreflightHistory(event:any){
-  const fp=await kromStatePath(PREFLIGHT_HISTORY_FILE); let rows:any[]=[];
-  try { rows=JSON.parse(await fs.readFile(fp,"utf8")); } catch {}
-  rows.push({at:new Date().toISOString(),...event});
-  await fs.writeFile(fp,JSON.stringify(rows.slice(-1000),null,2),"utf8");
-}
-
-function uniqueStrings(items:string[]){ return [...new Set(items.filter(Boolean))]; }
-
-async function buildChangeSimulation(task:string,targetFiles:string[],depth=2): Promise<ChangeSimulation> {
-  let graph=await readCodeIntelligenceGraph();
-  if (!graph) graph=await buildCodeIntelligenceGraph();
-  const known=new Set(Object.keys(graph.nodes));
-  const normalized=uniqueStrings(targetFiles.map(normalizeRel)).filter(f=>known.has(f));
-  let targets=normalized;
-  if (!targets.length) {
-    const ctx=await buildSmartContext(task,20,80000,false);
-    targets=ctx.selected.map(x=>x.file).filter(f=>known.has(f)).slice(0,12);
-  }
-  const depReach=dependencyReach(graph,targets,"dependencies",Math.max(1,Math.min(depth,4)));
-  const dependentReach=dependencyReach(graph,targets,"dependents",Math.max(1,Math.min(depth,4)));
-  const affected=uniqueStrings([...targets,...depReach.all,...dependentReach.all]);
-  const nodes=affected.map(f=>graph!.nodes[f]).filter(Boolean);
-  const routes=uniqueStrings(nodes.flatMap(n=>n.routes));
-  const dataFiles=affected.filter(f=>graph!.nodes[f]?.kind==="data");
-  const configFiles=affected.filter(f=>graph!.nodes[f]?.kind==="config");
-  const sharedTargets=targets.filter(f=>(graph!.nodes[f]?.importedBy.length||0)>=5);
-  const unresolved=graph.unresolvedImports.filter(x=>affected.includes(x.from)).slice(0,100);
-  const base=riskForImpact(targets,dependentReach.all,routes,dataFiles.length>0,configFiles.length>0);
-  let score=base.score + Math.min(20,sharedTargets.length*5) + Math.min(15,unresolved.length*3);
-  score=Math.min(100,score);
-  const level: "LOW"|"MEDIUM"|"HIGH" = score>=65?"HIGH":score>=30?"MEDIUM":"LOW";
-  const reasons:string[]=[];
-  if (dependentReach.all.length) reasons.push(`${dependentReach.all.length} dependent files may be affected.`);
-  if (routes.length) reasons.push(`${routes.length} application routes are in the blast radius.`);
-  if (sharedTargets.length) reasons.push(`Shared/high-dependency targets: ${sharedTargets.join(", ")}.`);
-  if (dataFiles.length) reasons.push(`Data/database files are affected: ${dataFiles.slice(0,8).join(", ")}.`);
-  if (configFiles.length) reasons.push(`Build/runtime configuration may be affected.`);
-  if (unresolved.length) reasons.push(`${unresolved.length} unresolved local imports exist inside the predicted scope.`);
-  if (!reasons.length) reasons.push("Change appears localized based on the current dependency graph.");
-  const verificationPlan=uniqueStrings([
-    "Run typecheck/build for the project.",
-    targets.some(f=>/test|spec|__tests__/i.test(f))?"Run the directly affected tests.":"Run regression tests for affected dependents.",
-    routes.length?`Exercise affected routes: ${routes.slice(0,12).join(", ")}.`:"Run targeted functional verification for the changed feature.",
-    affected.some(f=>/tsx|jsx|vue|svelte|css|scss/i.test(f))?"Run live browser + responsive visual verification.":"",
-    dataFiles.length?"Validate database migrations/RLS/data integrity before release.":"",
-    configFiles.length?"Re-run clean production build from configuration baseline.":""
-  ]);
-  const rollbackPlan=[
-    "Create an Autopilot checkpoint before editing target files.",
-    "Record changed files and verification evidence after each phase.",
-    level==="HIGH"?"Use a narrow staged change; rollback immediately on confirmed regression.":"Keep rollback checkpoint until release gate passes."
-  ];
-  const sim:ChangeSimulation={version:1,id:`SIM-${Date.now()}`,generatedAt:new Date().toISOString(),task,targetFiles:targets,affectedFiles:affected,affectedRoutes:routes,dependencies:depReach.all,dependents:dependentReach.all,dataFiles,configFiles,risk:{score,level,reasons},verificationPlan,rollbackPlan,unresolvedImports:unresolved};
-  await fs.writeFile(await kromStatePath(CHANGE_SIMULATION_FILE),JSON.stringify(sim,null,2),"utf8");
-  return sim;
-}
-
-async function readChangeSimulation(): Promise<ChangeSimulation|null>{
-  try { return JSON.parse(await fs.readFile(await kromStatePath(CHANGE_SIMULATION_FILE),"utf8")); } catch { return null; }
-}
-
-async function evaluatePreflight(sim:ChangeSimulation, requireCheckpoint=true){
-  const blockers:string[]=[]; const warnings:string[]=[]; const evidence:string[]=[];
-  const autopilot=await readAutopilotState();
-  if (!sim.targetFiles.length) blockers.push("No concrete target files were resolved from the task.");
-  if (requireCheckpoint && !autopilot?.checkpointId) blockers.push("No rollback checkpoint is active.");
-  else if (autopilot?.checkpointId) evidence.push(`checkpoint:${autopilot.checkpointId}`);
-  if (sim.risk.level==="HIGH" && sim.verificationPlan.length<3) blockers.push("High-risk change has an insufficient verification plan.");
-  if (sim.dataFiles.length && !sim.verificationPlan.some(x=>/database|migration|rls/i.test(x))) blockers.push("Database/data changes lack a database verification step.");
-  if (sim.configFiles.length) warnings.push("Configuration files are in scope; validate a clean production build.");
-  if (sim.unresolvedImports.length) warnings.push(`${sim.unresolvedImports.length} unresolved imports exist in the predicted blast radius.`);
-  if (sim.dependents.length>=15) warnings.push("Large dependent blast radius; prefer staged implementation and targeted regression checks.");
-  if (sim.affectedRoutes.length) evidence.push(`routes:${sim.affectedRoutes.length}`);
-  evidence.push(`risk:${sim.risk.level}:${sim.risk.score}`);
-  const status=blockers.length?"BLOCKED":warnings.length?"PASS_WITH_WARNINGS":"PASS";
-  return {status,blockers,warnings,evidence,simulationId:sim.id,rule:status==="BLOCKED"?"Do not edit until blockers are resolved.":"Proceed only within the simulated scope and re-run impact analysis if scope expands."};
-}
-
-function forecastChangeRisk(sim:ChangeSimulation){
-  const categories=[
-    {name:"dependency-regression",score:Math.min(100,sim.dependents.length*6+(sim.risk.level==="HIGH"?20:0))},
-    {name:"routing-ui-regression",score:Math.min(100,sim.affectedRoutes.length*10+(sim.affectedFiles.some(f=>/tsx|jsx|vue|svelte|css|scss/i.test(f))?20:0))},
-    {name:"data-security-regression",score:Math.min(100,sim.dataFiles.length*25+(sim.dataFiles.some(f=>/rls|policy|auth|migration|supabase/i.test(f))?30:0))},
-    {name:"build-config-regression",score:Math.min(100,sim.configFiles.length*25)},
-    {name:"unknown-import-risk",score:Math.min(100,sim.unresolvedImports.length*15)}
-  ].map(x=>({...x,level:x.score>=65?"HIGH":x.score>=30?"MEDIUM":"LOW"}));
-  const top=[...categories].sort((a,b)=>b.score-a.score);
-  return {overall:sim.risk,categories:top,highestRisk:top[0],recommendedControls:uniqueStrings([
-    sim.risk.level==="HIGH"?"Split the change into smaller verified phases.":"Use focused edits and verify immediately.",
-    sim.dependents.length?"Run regression tests covering dependent files/components.":"",
-    sim.affectedRoutes.length?"Exercise all affected routes in live browser verification.":"",
-    sim.dataFiles.length?"Review schema/RLS/migrations with Security + QA before release.":"",
-    sim.configFiles.length?"Validate clean install/build and runtime startup.":""
-  ])};
-}
+const v39PredictiveEngineering = createPredictiveEngineeringService({
+  kromStatePath,
+  readCodeIntelligenceGraph,
+  buildCodeIntelligenceGraph,
+  buildSmartContext,
+  dependencyReach,
+  riskForImpact,
+  normalizeRel,
+  readAutopilotState,
+  decideExecutionStrategy
+});
+const CHANGE_SIMULATION_FILE = v39PredictiveEngineering.changeSimulationFile;
+const PREFLIGHT_HISTORY_FILE = v39PredictiveEngineering.preflightHistoryFile;
+const appendPreflightHistory = v39PredictiveEngineering.appendPreflightHistory;
+const buildChangeSimulation = v39PredictiveEngineering.buildChangeSimulation;
+const readChangeSimulation = v39PredictiveEngineering.readChangeSimulation;
+const evaluatePreflight = v39PredictiveEngineering.evaluatePreflight;
+const forecastChangeRisk = v39PredictiveEngineering.forecastChangeRisk;
 
 const RUNTIME_HISTORY_FILE = "adaptive-runtime-history.json";
 
