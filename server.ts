@@ -24,6 +24,7 @@ import { createDiagnosticsService } from './src/diagnostics-service.js';
 import { createProviderStore, type ProviderKind as V320ProviderKind, type ProviderProfile as V320Profile } from './src/provider-store.js';
 import { createProviderService } from './src/provider-service.js';
 import { createProviderRouting, classifyTask } from './src/provider-routing.js';
+import { createAdaptiveModelService } from './src/adaptive-model-service.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -4637,51 +4638,25 @@ const v320Status = v320ProviderRouting.status;
 // ===== v33.0 ADAPTIVE MULTI-MODEL INTELLIGENCE =====
 const V330_STATE_DIR = path.join(KROM_HOME, ".krom", "v33-model-intelligence");
 const V330_HISTORY_FILE = path.join(V330_STATE_DIR, "benchmark-history.json");
-async function v330Ensure(){ await fs.mkdir(V330_STATE_DIR,{recursive:true}); }
-async function v330Write(name:string,data:any){ await v330Ensure(); const out={generatedAt:new Date().toISOString(),...data}; await fs.writeFile(path.join(V330_STATE_DIR,name),JSON.stringify(out,null,2),'utf8'); return out; }
-async function v330ReadHistory():Promise<any[]>{ await v330Ensure(); try{ const x=JSON.parse(await fs.readFile(V330_HISTORY_FILE,'utf8')); return Array.isArray(x)?x:(x.history||[]);}catch{return [];} }
-async function v330SaveHistory(history:any[]){ await v330Ensure(); await fs.writeFile(V330_HISTORY_FILE,JSON.stringify({version:'33.0.0',updatedAt:new Date().toISOString(),history:history.slice(-1000)},null,2),'utf8'); }
-function v330LatencyScore(ms:number){ if(!Number.isFinite(ms)||ms<=0)return 0; if(ms<=300)return 100; if(ms<=700)return 90; if(ms<=1500)return 75; if(ms<=3000)return 55; if(ms<=6000)return 35; return 15; }
-function v330TaskAffinity(kind:string,taskClass:string){
-  const table:any={
-    coding:{ollama:82,gpt4all:65,gemini:92,'openai-compatible':90,custom:70},
-    planning:{ollama:72,gpt4all:62,gemini:94,'openai-compatible':92,custom:70},
-    design:{ollama:65,gpt4all:55,gemini:93,'openai-compatible':90,custom:68},
-    general:{ollama:75,gpt4all:65,gemini:92,'openai-compatible':90,custom:70}
-  };
-  return Number(table[taskClass]?.[kind]??70);
-}
-async function v330ProviderBenchmark(input:{providerId?:string;runs?:number}){
-  const runs=Math.max(1,Math.min(5,Number(input.runs||2)));
-  const profiles=(await v320ReadProfiles()).filter(p=>p.enabled&&(!input.providerId||p.id===input.providerId));
-  const rows:any[]=[];
-  for(const p of profiles){
-    const samples:any[]=[];
-    for(let i=0;i<runs;i++){ const started=Date.now(); const r=await v320FetchJson(v320ModelsUrl(p),p); samples.push({ok:r.ok,status:r.status,latencyMs:Date.now()-started,error:(r as any).error||null,modelCount:r.ok?v320ExtractModels(p,(r as any).data).length:0}); }
-    const okCount=samples.filter(x=>x.ok).length; const avg=Math.round(samples.reduce((a,x)=>a+x.latencyMs,0)/samples.length); const availability=Math.round((okCount/samples.length)*100);
-    const reliability=Math.round(availability*0.7+v330LatencyScore(avg)*0.3);
-    rows.push({providerId:p.id,name:p.name,kind:p.kind,runs,availabilityPct:availability,avgLatencyMs:avg,reliabilityScore:reliability,credentialConfigured:p.apiKeyEnv?!!process.env[p.apiKeyEnv]:true,samples});
-  }
-  const history=await v330ReadHistory(); history.push({at:new Date().toISOString(),rows:rows.map(r=>({providerId:r.providerId,availabilityPct:r.availabilityPct,avgLatencyMs:r.avgLatencyMs,reliabilityScore:r.reliabilityScore}))}); await v330SaveHistory(history);
-  return v330Write('provider-benchmark.json',{version:'33.0.0',status:rows.some(x=>x.availabilityPct>0)?'READY':'NO_PROVIDER_AVAILABLE',rows});
-}
-async function v330Reliability(input:{providerId?:string}){
-  const history=await v330ReadHistory(); const bucket=new Map<string,any[]>();
-  for(const h of history){ for(const r of h.rows||[]){ if(input.providerId&&r.providerId!==input.providerId)continue; const a=bucket.get(r.providerId)||[]; a.push(r); bucket.set(r.providerId,a); } }
-  const providers=[...bucket.entries()].map(([providerId,rows])=>({providerId,samples:rows.length,availabilityPct:Math.round(rows.reduce((a,r)=>a+Number(r.availabilityPct||0),0)/rows.length),avgLatencyMs:Math.round(rows.reduce((a,r)=>a+Number(r.avgLatencyMs||0),0)/rows.length),reliabilityScore:Math.round(rows.reduce((a,r)=>a+Number(r.reliabilityScore||0),0)/rows.length)})).sort((a,b)=>b.reliabilityScore-a.reliabilityScore);
-  return v330Write('provider-reliability.json',{version:'33.0.0',status:providers.length?'READY':'NO_HISTORY',providers});
-}
-async function v330SmartRoute(input:{task:string;preferLocal?:boolean;maxCandidates?:number}){
-  const profiles=(await v320ReadProfiles()).filter(p=>p.enabled); const taskClass=v320TaskRoute(input.task);
-  const benchmark:any=await v330ProviderBenchmark({runs:1}); const healthById=new Map((benchmark.rows||[]).map((x:any)=>[x.providerId,x]));
-  const candidates=profiles.map(p=>{ const h:any=healthById.get(p.id)||{}; const affinity=v330TaskAffinity(p.kind,taskClass); const localBonus=input.preferLocal&&(p.kind==='ollama'||p.kind==='gpt4all')?8:0; const priorityScore=Math.max(0,100-Math.min(100,p.priority)); const score=Math.round((Number(h.reliabilityScore||0)*0.45)+(affinity*0.35)+(priorityScore*0.20)+localBonus); return {providerId:p.id,provider:p.name,kind:p.kind,model:p.defaultModel||null,healthy:Number(h.availabilityPct||0)>0,reliabilityScore:Number(h.reliabilityScore||0),avgLatencyMs:Number(h.avgLatencyMs||0),taskAffinity:affinity,priority:p.priority,score}; }).sort((a,b)=>b.score-a.score);
-  const usable=candidates.filter(x=>x.healthy); const selected=(usable[0]||null);
-  return v330Write('smart-route.json',{version:'33.0.0',status:selected?'ROUTED':'NO_PROVIDER',task:input.task,taskClass,selected,candidates:candidates.slice(0,Math.max(1,Math.min(10,Number(input.maxCandidates||5)))),reason:selected?'ranked by health/reliability, task affinity, provider priority and optional local preference':'no enabled provider'});
-}
-async function v330FallbackChain(input:{task:string;preferLocal?:boolean}){ const routed:any=await v330SmartRoute({task:input.task,preferLocal:input.preferLocal,maxCandidates:10}); return v330Write('adaptive-fallback.json',{version:'33.0.0',status:routed.candidates?.length?'READY':'EMPTY',taskClass:routed.taskClass,chain:(routed.candidates||[]).filter((x:any)=>x.healthy).map((x:any,i:number)=>({order:i+1,...x})),rule:'Fail over only to healthy candidates in descending route score.'}); }
-async function v330RouteExplain(input:{task:string}){ const routed:any=await v330SmartRoute({task:input.task,maxCandidates:5}); return v330Write('route-explain.json',{version:'33.0.0',status:routed.status,task:input.task,taskClass:routed.taskClass,selected:routed.selected,explanation:routed.selected?['provider passed live availability check','score combines historical/live reliability','provider affinity matches task class','provider priority contributes but cannot override an unhealthy endpoint']:['no enabled healthy provider was available'],alternatives:routed.candidates||[]}); }
-async function v330QualityBenchmarkPlan(input:{taskClass?:string}){ const taskClass=input.taskClass||'coding'; return v330Write('quality-benchmark-plan.json',{version:'33.0.0',status:'PLAN_ONLY',taskClass,note:'This tool does not fabricate answer-quality scores. Execute identical benchmark prompts externally against candidate models, then record measured outcomes.',rubric:{correctness:40,completeness:20,instructionFollowing:15,codeQuality:15,latency:10},requiredEvidence:['same prompt for every model','captured response','objective tests where possible','latency measurement','reviewer or test evidence']}); }
-async function v330Status(){ await v330Ensure(); const history=await v330ReadHistory(); const profiles=await v320ReadProfiles(); return {version:'33.0.0',status:'READY',providerCount:profiles.length,enabledProviders:profiles.filter(p=>p.enabled).length,benchmarkRuns:history.length,stateDir:V330_STATE_DIR,capabilities:['provider benchmark','reliability history','smart route','adaptive fallback','route explainability','quality benchmark planning']}; }
+const v330AdaptiveModel = createAdaptiveModelService({
+  stateDir: V330_STATE_DIR,
+  historyFile: V330_HISTORY_FILE,
+  readProfiles: v320ReadProfiles,
+  fetchJson: v320FetchJson,
+  modelsUrl: v320ModelsUrl,
+  extractModels: v320ExtractModels,
+  classifyTask: v320TaskRoute
+});
+const v330Write = v330AdaptiveModel.write;
+const v330ReadHistory = v330AdaptiveModel.readHistory;
+const v330SaveHistory = v330AdaptiveModel.saveHistory;
+const v330ProviderBenchmark = v330AdaptiveModel.providerBenchmark;
+const v330Reliability = v330AdaptiveModel.reliability;
+const v330SmartRoute = v330AdaptiveModel.smartRoute;
+const v330FallbackChain = v330AdaptiveModel.fallbackChain;
+const v330RouteExplain = v330AdaptiveModel.routeExplain;
+const v330QualityBenchmarkPlan = v330AdaptiveModel.qualityBenchmarkPlan;
+const v330Status = v330AdaptiveModel.status;
 // ===== END v33.0 =====
 
 
