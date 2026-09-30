@@ -18,6 +18,7 @@ import { createSecretManager } from '../src/secret-manager.js';
 import { createAiControlService } from '../src/ai-control-service.js';
 import { APP_VERSION, APP_DISPLAY_VERSION } from '../src/release-info.js';
 import { renderDeveloperPlatformHtml } from '../src/developer-platform-ui.js';
+import { registerModelControlTools } from '../src/model-control-tools.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
@@ -336,4 +337,22 @@ test('developer platform renderer uses supplied release identity and escapes dyn
   assert.ok(!html.includes('<Mock>'));
   assert.ok(html.includes('&lt;Mock&gt;'));
   assert.ok(html.includes('C:\\SAFE&lt;&amp;&gt;'));
+});
+
+test('extracted model-control registration preserves v32-v35 tool catalog', () => {
+  const names:string[] = [];
+  const server:any = { registerTool: (name:string) => { names.push(name); } };
+  registerModelControlTools(server, {
+    result: (text:string) => ({ content: [{ type: 'text', text }] }),
+    errorResult: (error:unknown) => ({ isError: true, error })
+  } as any);
+  assert.equal(names.length, 30);
+  for (const required of [
+    'provider_profile_upsert_v32',
+    'provider_benchmark_v33',
+    'ai_control_center_status_v34',
+    'provider_toggle_v342',
+    'developer_platform_status_v35',
+    'developer_platform_gate_v35'
+  ]) assert.ok(names.includes(required), required);
 });
