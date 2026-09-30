@@ -52,7 +52,7 @@ export function registerV35AdaptiveRuntimeTools(
         if (!rebuildContext) { try { bundle = JSON.parse(await fs.readFile(await kromStatePath(smartContextFile), "utf8")); } catch {} }
         if (!bundle || bundle.query !== task) bundle = await buildSmartContext(task, 30, 120000, false);
         const strategy = decideExecutionStrategy(task, bundle);
-        const graph = buildany(task, strategy);
+        const graph = buildTaskGraph(task, strategy);
         await fs.writeFile(await kromStatePath(taskGraphFile), JSON.stringify(graph, null, 2), "utf8");
         return result(JSON.stringify({ status: "OK", graphFile: `.krom/${taskGraphFile}`, strategy, nodes: graph.nodes, rule: "Execute only READY nodes. A dependent node cannot become READY until every dependency is VERIFIED." }, null, 2));
       } catch (error) { return errorResult(error); }
