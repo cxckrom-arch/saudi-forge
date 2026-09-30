@@ -57,7 +57,7 @@ export function createRepairService(options:{
 
 
 async function repairStatePath() {
-  return kromStatePath(REPAIR_STATE_FILE);
+  return kromStatePath(repairStateFile);
 }
 
 async function readRepairState(): Promise<RepairCycleState | null> {
