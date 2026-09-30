@@ -12,6 +12,7 @@ import { ToolRuntime, automationInput, outcome } from './src/tool-runtime.js';
 import { resolveCommand } from './src/process-command.js';
 import { chatMessages, completionUrl } from './src/chat-context.js';
 import { MAX_FILE_SIZE, createProjectContext } from './src/project-context.js';
+import { createPackageRunner } from './src/package-runner.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -57,83 +58,11 @@ const {
   detectPackageManager
 } = createProjectContext(PROJECT_ROOT);
 
-async function executeProgram(
-  program: string,
-  args: string[],
-  cwd = PROJECT_ROOT,
-  timeout = 180000
-) {
-  try {
-    const resolvedCommand = await resolveCommand(program, args);
-    const execution = await execFileAsync(
-      resolvedCommand.program,
-      resolvedCommand.args,
-      {
-        cwd,
-        timeout,
-        windowsHide: true,
-        maxBuffer: 10 * 1024 * 1024,
-        encoding: "utf8"
-      } as any
-    );
-
-    return {
-      success: true,
-      program,
-      args,
-      stdout: String(execution.stdout || ""),
-      stderr: String(execution.stderr || "")
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      program,
-      args,
-      stdout: String(error?.stdout || ""),
-      stderr: String(error?.stderr || ""),
-      message: error?.message || String(error),
-      code: error?.code ?? null
-    };
-  }
-}
-
-async function runPackageScript(
-  candidateNames: string[]
-) {
-  const pkg = await readPackageJson();
-  const scripts = pkg?.scripts || {};
-
-  const scriptName = candidateNames.find(
-    (name) => typeof scripts[name] === "string"
-  );
-
-  if (!scriptName) {
-    return {
-      available: false,
-      status: "SKIPPED",
-      reason: `No script found: ${candidateNames.join(", ")}`
-    };
-  }
-
-  const manager = await detectPackageManager();
-
-  const execution = await executeProgram(
-    manager,
-    ["run", scriptName],
-    PROJECT_ROOT,
-    300000
-  );
-
-  return {
-    available: true,
-    status: execution.success ? "PASS" : "FAIL",
-    packageManager: manager,
-    script: scriptName,
-    ...execution
-  };
-}
-
-
+const { executeProgram, runPackageScript } = createPackageRunner({
+  projectRoot: PROJECT_ROOT,
+  readPackageJson,
+  detectPackageManager
+});
 
 // =========================================================
 // PROMPT STUDIO HELPERS
