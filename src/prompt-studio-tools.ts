@@ -21,6 +21,8 @@ export function registerPromptStudioTools(
     safePath: (relativePath: string) => string;
     readPackageJson: () => Promise<any>;
     detectPackageManager: () => Promise<any>;
+    exists: (target: string) => Promise<boolean>;
+    backupFile: (target: string) => Promise<string | null>;
   }
 ) {
   const {
@@ -36,7 +38,9 @@ export function registerPromptStudioTools(
     sanitizePromptName,
     safePath,
     readPackageJson,
-    detectPackageManager
+    detectPackageManager,
+    exists,
+    backupFile
   } = deps;
 
   // =========================================================
