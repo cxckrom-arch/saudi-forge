@@ -14,6 +14,7 @@ import { chatMessages, completionUrl } from './src/chat-context.js';
 import { MAX_FILE_SIZE, IGNORED_DIRS, TEXT_EXTENSIONS, createProjectContext } from './src/project-context.js';
 import { createPackageRunner } from './src/package-runner.js';
 import { registerAutomationTools } from './src/automation-tools.js';
+import { LOOPBACK_HOST, createNetworkPolicy } from './src/network-policy.js';
 const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
@@ -8432,27 +8433,9 @@ const handler = createMcpHandler(
 
 const nodeHandler = toNodeHandler(handler);
 
-const PUBLIC_HOST = process.env.KROM_PUBLIC_HOST || "";
+const networkPolicy = createNetworkPolicy(process.env.KROM_PUBLIC_HOST || "");
 
-const allowedHosts = [
-  "127.0.0.1",
-  "localhost",
-  "[::1]",
-  ...(PUBLIC_HOST ? [PUBLIC_HOST] : [])
-];
-
-const allowedOrigins = [
-  "127.0.0.1",
-  "localhost",
-  "[::1]",
-  ...(PUBLIC_HOST ? [PUBLIC_HOST] : [])
-];
-
-  const app = createMcpFastifyApp({
-  host: "127.0.0.1",
-  allowedHosts,
-  allowedOrigins
-});
+const app = createMcpFastifyApp(networkPolicy);
 
 app.all(
   "/mcp",
@@ -8513,7 +8496,7 @@ app.post('/ide/api/runs/:id/cancel',runtimeEndpoint(async request=>toolRuntime.c
 app.addHook('onClose',async()=>{toolRuntime.stopScheduler();await catalogServer.close();});
 await app.listen({
   port: PORT,
-  host: "127.0.0.1"
+  host: LOOPBACK_HOST
 });
 
 console.log("");
