@@ -21,6 +21,7 @@ export function createDeveloperPlatformService(options: {
   v90DependencyDoctor: (...args: any[]) => Promise<any> | any;
   v90Health: (...args: any[]) => Promise<any> | any;
   executeProgram: (...args: any[]) => Promise<any> | any;
+  now?: () => number;
 }) {
   const {
     kromHome,
@@ -41,6 +42,7 @@ export function createDeveloperPlatformService(options: {
     v90Health,
     executeProgram
   } = options;
+  const now = options.now || (() => Date.now());
 
 // ===== v35.0 DEVELOPER PLATFORM: CHAT + PREVIEW =====
 const V350_STATE_DIR = path.join(kromHome, ".krom", "v35-developer-platform");
@@ -52,39 +54,80 @@ function v350ContentFromOpenAI(data:any){ return String(data?.choices?.[0]?.mess
 let v350ChatBusy=false;
 const V350_CIRCUIT_FAILURE_THRESHOLD=2;
 const V350_CIRCUIT_COOLDOWN_MS=60_000;
-const v350ProviderCircuits=new Map<string,{failures:number;openUntil:number;lastError?:string;updatedAt:string}>();
+type V350CircuitState={failures:number;openUntil:number;lastError?:string;updatedAt:string;phase:'CLOSED'|'OPEN'|'HALF_OPEN';lastProbeAt?:string};
+const v350ProviderCircuits=new Map<string,V350CircuitState>();
 
 function v350CircuitSnapshot(){
-  const now=Date.now();
+  const current=now();
   return [...v350ProviderCircuits.entries()].map(([providerId,state])=>({
     providerId,
     failures:state.failures,
-    open:state.openUntil>now,
+    phase:state.phase,
+    open:state.phase==='OPEN'&&state.openUntil>current,
     openUntil:state.openUntil?new Date(state.openUntil).toISOString():null,
-    cooldownRemainingMs:Math.max(0,state.openUntil-now),
+    cooldownRemainingMs:Math.max(0,state.openUntil-current),
     lastError:state.lastError||null,
+    lastProbeAt:state.lastProbeAt||null,
     updatedAt:state.updatedAt
   }));
 }
 
-function v350CircuitOpen(providerId:string){
+async function v350CircuitAdmission(providerId:string){
   const state=v350ProviderCircuits.get(providerId);
-  if(!state) return false;
-  if(state.openUntil<=Date.now()){
-    if(state.openUntil>0) v350ProviderCircuits.set(providerId,{...state,openUntil:0,updatedAt:new Date().toISOString()});
-    return false;
+  if(!state || state.phase==='CLOSED') return {allowed:true,recovered:false};
+  const current=now();
+  if(state.phase==='OPEN' && state.openUntil>current){
+    return {allowed:false,recovered:false,reason:'COOLDOWN',openUntil:state.openUntil};
   }
-  return true;
+
+  const probing:V350CircuitState={
+    ...state,
+    phase:'HALF_OPEN',
+    lastProbeAt:new Date(current).toISOString(),
+    updatedAt:new Date(current).toISOString()
+  };
+  v350ProviderCircuits.set(providerId,probing);
+
+  try{
+    const health:any=await v320ProviderHealth({providerId});
+    const ok=!!health?.results?.[0]?.ok;
+    if(ok){
+      v350ProviderCircuits.delete(providerId);
+      return {allowed:true,recovered:true,reason:'HEALTH_PROBE_PASS'};
+    }
+    const reopened:V350CircuitState={
+      ...probing,
+      phase:'OPEN',
+      openUntil:current+V350_CIRCUIT_COOLDOWN_MS,
+      lastError:'Recovery health probe failed.',
+      updatedAt:new Date(current).toISOString()
+    };
+    v350ProviderCircuits.set(providerId,reopened);
+    return {allowed:false,recovered:false,reason:'HEALTH_PROBE_FAIL',openUntil:reopened.openUntil};
+  }catch(error){
+    const reopened:V350CircuitState={
+      ...probing,
+      phase:'OPEN',
+      openUntil:current+V350_CIRCUIT_COOLDOWN_MS,
+      lastError:v350SafeError(error),
+      updatedAt:new Date(current).toISOString()
+    };
+    v350ProviderCircuits.set(providerId,reopened);
+    return {allowed:false,recovered:false,reason:'HEALTH_PROBE_ERROR',openUntil:reopened.openUntil};
+  }
 }
 
 function v350CircuitFailure(providerId:string,error:unknown){
-  const current=v350ProviderCircuits.get(providerId)||{failures:0,openUntil:0,updatedAt:new Date().toISOString()};
+  const current=v350ProviderCircuits.get(providerId)||{failures:0,openUntil:0,phase:'CLOSED' as const,updatedAt:new Date(now()).toISOString()};
   const failures=current.failures+1;
+  const opened=failures>=V350_CIRCUIT_FAILURE_THRESHOLD;
   v350ProviderCircuits.set(providerId,{
     failures,
-    openUntil:failures>=V350_CIRCUIT_FAILURE_THRESHOLD?Date.now()+V350_CIRCUIT_COOLDOWN_MS:0,
+    phase:opened?'OPEN':'CLOSED',
+    openUntil:opened?now()+V350_CIRCUIT_COOLDOWN_MS:0,
     lastError:v350SafeError(error),
-    updatedAt:new Date().toISOString()
+    lastProbeAt:current.lastProbeAt,
+    updatedAt:new Date(now()).toISOString()
   });
 }
 
@@ -172,15 +215,24 @@ async function v350AskModelImpl(input:{message:string;activeFile?:string|null;pr
   const attempts:any[]=[];
 
   for(const providerId of candidateIds){
-    if(v350CircuitOpen(providerId)){
-      const circuit=v350ProviderCircuits.get(providerId)!;
+    const admission:any=await v350CircuitAdmission(providerId);
+    if(!admission.allowed){
       attempts.push({
         providerId,
         status:'CIRCUIT_OPEN',
-        error:'Provider temporarily skipped after repeated failures.',
-        openUntil:new Date(circuit.openUntil).toISOString()
+        error:admission.reason==='COOLDOWN'?'Provider temporarily skipped during circuit cooldown.':'Provider recovery probe did not pass.',
+        recoveryProbe:admission.reason,
+        openUntil:admission.openUntil?new Date(admission.openUntil).toISOString():null
       });
       continue;
+    }
+
+    if(admission.recovered){
+      attempts.push({
+        providerId,
+        status:'RECOVERED',
+        recoveryProbe:admission.reason
+      });
     }
 
     const profile=profiles.find((p:any)=>p.id===providerId);
