@@ -1,5 +1,5 @@
 ---
-name: ksa-safety-board-orchestrator
+name: ksa-safety-board-orchestrator-v3
 description: Master orchestration skill for KSA SAFETY BOARD cross-module work. Use for multi-specialist implementation, full or cross-module audits, major feature delivery, UI-to-engineering handoff, schema/route drift resolution, long-running module work, or release coordination. Prefer the dedicated Engineering skill for small isolated bug fixes and the dedicated UI/UX skill for narrow visual-only tasks.
 ---
 
@@ -55,6 +55,37 @@ The orchestrator coordinates the complete installed specialist stack. Use the ex
 
 - **`ksa-vision-reliability-security-auditor` — Vision Reliability & Security Auditor**
   - Owns camera/device credential security, stream access, RLS, privacy, retention, reliability, offline/reconnect testing, alert-fatigue review, performance, audit logs, Vision API security, and production approval for Safety Vision.
+
+### Additional KSA Safety Board specialists
+
+The following specialists are independently registered in KROM Forge. Load the current matching `SKILL.md` before assigning work; do not copy their full instructions into this orchestrator.
+
+- **`ksa-database-schema-migration-architect`** — PostgreSQL/Supabase schema, constraints, indexes, migrations, drift, compatibility, data integrity, and rollback. Inspect production schema before proposing DDL.
+- **`ksa-auth-rbac-rls-security-engineer`** — Supabase Auth, MFA, RBAC, action permissions, RLS, grants, SECURITY DEFINER, privileged RPCs, service-role boundaries, lockouts, and session revocation. Never disable RLS to mask an authorization defect.
+- **`ksa-integration-notification-engineer`** — Email, WhatsApp, Teams, in-app, webhooks, outbox, retries, throttling, templates, delivery status, provider health, secrets, and webhook signatures. Integrate with HSE Automation.
+- **`ksa-realtime-collaboration-engineer`** — Live meetings, PTT, WebRTC signaling, Supabase Realtime, presence, broadcast, channel authorization, floor acquisition, heartbeat, reconnect, participant state, and chat. Do not use Supabase Realtime as raw video transport.
+- **`ksa-mobile-pwa-offline-field-engineer`** — Mobile field UX, PWA/offline queue, background sync, QR, camera/GPS/voice capture, retry, conflict resolution, stale data, and reconnect for field modules.
+- **`ksa-qa-e2e-test-automation-engineer`** — Reusable route, Auth, permission, CRUD, form, API, print, export, QR, mobile, RTL/LTR, integration, realtime, and regression automation. Build passing is not production readiness.
+- **`ksa-performance-observability-sre-engineer`** — Measured frontend/API/database performance, Vercel/Supabase logs, tracing, metrics, request IDs, health, slow routes/queries, alerts, and failure diagnostics. Measure before optimizing.
+- **`ksa-backup-restore-disaster-recovery-engineer`** — Database/config/storage backup, ZIP manifests, SHA-256 integrity, restore validation, authorization, rollback, recovery testing, and DR runbooks. A backup is invalid until restore is tested.
+- **`ksa-document-intelligence-ocr-import-engineer`** — OCR, document parsing, XLSX/CSV/JSON/image extraction, mapping, validation, duplicate detection, import preview, rejected rows, and normalization. Never silently import invalid data.
+- **`ksa-ai-hse-assistant-rag-engineer`** — HSE Assistant, knowledge documents/chunks, embeddings, RAG, grounding, citations, prompt-injection defense, permission-scoped retrieval, provider runtime, and AI audit logs. Never fabricate production HSE records.
+- **`ksa-accessibility-rtl-i18n-engineer`** — Arabic/English/Urdu, RTL/LTR, WCAG, keyboard navigation, focus, screen readers, semantic HTML, locale-aware formatting, and translated errors. Test RTL component-by-component.
+- **`ksa-data-exchange-etl-reporting-engineer`** — Structured import/export, CSV/XLSX/JSON/Word/ZIP, batch processing, scheduled exports, reconciliation, ETL validation, normalization, large datasets, reporting datasets, and auditability. Print owns presentation; ETL owns data movement.
+
+### Additional specialist routing rules
+
+- Schema or migration: `ksa-database-schema-migration-architect → ksa-auth-rbac-rls-security-engineer when access changes → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Authentication, 401/403, RBAC, or RLS: `ksa-auth-rbac-rls-security-engineer → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Notification integration: `ksa-integration-notification-engineer → ksa-safety-board-hse-automation-workflow → ksa-auth-rbac-rls-security-engineer for secrets/webhooks → ksa-safety-board-engineering → production-engineering-release-guardian`.
+- Live meeting or PTT: `ksa-realtime-collaboration-engineer → ksa-safety-board-uiux-design → ksa-safety-board-engineering → ksa-auth-rbac-rls-security-engineer → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Offline field workflow: `ksa-mobile-pwa-offline-field-engineer → ksa-safety-board-uiux-design → enterprise-hse-platform-engineer → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Import/OCR: `ksa-document-intelligence-ocr-import-engineer → ksa-database-schema-migration-architect → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- AI HSE Assistant/RAG: `ksa-ai-hse-assistant-rag-engineer → enterprise-hse-platform-engineer → ksa-auth-rbac-rls-security-engineer → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Performance/SRE: `ksa-performance-observability-sre-engineer → ksa-safety-board-engineering → ksa-database-schema-migration-architect when DB-bound → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Backup/restore: `ksa-backup-restore-disaster-recovery-engineer → ksa-database-schema-migration-architect → ksa-auth-rbac-rls-security-engineer → ksa-safety-board-engineering → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Accessibility/localization: `ksa-accessibility-rtl-i18n-engineer → ksa-safety-board-uiux-design → elite-product-uiux-designer → ksa-qa-e2e-test-automation-engineer → production-engineering-release-guardian`.
+- Data exchange/ETL: `ksa-data-exchange-etl-reporting-engineer → ksa-database-schema-migration-architect → ksa-safety-board-hse-automation-workflow for schedules → ksa-safety-board-engineering → production-engineering-release-guardian`.
 
 ### Ownership rule
 
