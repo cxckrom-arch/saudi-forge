@@ -19,6 +19,7 @@ export function registerCoreProjectTools(
     readPackageJson: () => Promise<any>;
     detectPackageManager: () => Promise<any>;
     isTextFile: (file: string) => boolean;
+    isSensitiveProjectPath?: (file: string) => boolean;
     executeProgram: (...args: any[]) => Promise<any>;
     runPackageScript: (...args: any[]) => Promise<any>;
     recordChangedFile: (relativePath: string) => Promise<void>;
@@ -37,6 +38,7 @@ export function registerCoreProjectTools(
     readPackageJson,
     detectPackageManager,
     isTextFile,
+    isSensitiveProjectPath = () => false,
     executeProgram,
     runPackageScript,
     recordChangedFile,
@@ -187,6 +189,9 @@ export function registerCoreProjectTools(
     },
     async ({ path: relativePath }) => {
       try {
+        if (isSensitiveProjectPath(relativePath)) {
+          throw new Error("Sensitive project files are not readable through MCP.");
+        }
         const target = safePath(relativePath);
         const stat = await fs.stat(target);
 

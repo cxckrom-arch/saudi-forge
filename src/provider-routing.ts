@@ -77,7 +77,7 @@ export function createProviderRouting(options: {
       if (!health.results?.[0]?.ok) {
         const all = await providerHealth({});
         const ok = all.results?.find((item: any) => item.ok);
-        if (ok) candidate = profiles.find((p) => p.id === ok.providerId);
+        candidate = ok ? profiles.find((p) => p.id === ok.providerId) : undefined;
       }
     }
 

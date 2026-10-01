@@ -31,6 +31,7 @@ import { renderDeveloperPlatformHtml } from './src/developer-platform-ui.js';
 import { registerModelControlTools } from './src/model-control-tools.js';
 import { createDeveloperPlatformService } from './src/developer-platform-service.js';
 import { registerCoreProjectTools } from './src/core-project-tools.js';
+import { registerSkillComplianceTools } from './src/skill-compliance-tools.js';
 import { registerPrecisionExecutionTools } from './src/precision-execution-tools.js';
 import { createPrecisionExecutionService, EXECUTION_DIR, EXECUTION_FILE, type ExecutionManifest } from './src/precision-execution-service.js';
 import { registerPromptStudioTools } from './src/prompt-studio-tools.js';
@@ -122,6 +123,7 @@ const {
   exists,
   backupFile,
   isTextFile,
+  isSensitiveProjectPath,
   walkProject,
   readPackageJson,
   detectPackageManager
@@ -932,6 +934,7 @@ const V80_EDIT_HISTORY_FILE = "v8-edit-history.json";
 const V80_CHAT_CONTEXT_FILE = "v8-chat-context.json";
 
 async function v80ReadTextFile(rel:string){
+  if(isSensitiveProjectPath(rel)) throw new Error("Sensitive project files are not readable through the IDE.");
   const abs=safePath(rel);
   const st=await fs.stat(abs);
   if(st.size>MAX_FILE_SIZE*2) throw new Error(`File too large for editor: ${rel}`);
@@ -964,7 +967,9 @@ async function v80UndoRedo(direction:"undo"|"redo",file?:string){
   const hist=(await v60ReadJson(V80_EDIT_HISTORY_FILE,[])) as any[];
   const filtered=hist.filter((x:any)=>!file||normalizeRel(x.file)===normalizeRel(file));
   if(!filtered.length)throw new Error("No edit history available.");
-  const item=direction==="undo"?filtered[filtered.length-1]:filtered.find((x:any)=>x.undone===true);
+  const item=direction==="undo"
+    ? [...filtered].reverse().find((x:any)=>x.undone!==true)
+    : filtered.find((x:any)=>x.undone===true);
   if(!item)throw new Error(`No ${direction} operation available.`);
   const abs=safePath(item.file);
   await backupFile(abs);
@@ -1060,9 +1065,10 @@ async function v90DependencyDoctor(){
 async function v90Health(existingDiagnostics?:any){
   const [tests,api,db,env,dep,diag,git]=await Promise.all([v90TestInventory(),v90ApiInventory(),v90DatabaseInventory(),v90EnvAudit(),v90DependencyDoctor(),existingDiagnostics?Promise.resolve(existingDiagnostics):v60Diagnostics(),executeProgram("git",["status","--short","--branch"],PROJECT_ROOT,30000)]);
   const errorCount=(diag.diagnostics||[]).filter((x:any)=>x.severity==='error').length;
-  let score=100; score-=Math.min(45,errorCount*5); if(!tests.tests.length&&!Object.keys(tests.scripts).length)score-=10; if(dep.concerns.some((x:any)=>x.severity==='warning'))score-=5; if(env.required.some((x:any)=>!x.present))score-=10; score=Math.max(0,score);
+  const failedChecks=(diag.checks||[]).filter((x:any)=>x.available!==false&&x.success===false).map((x:any)=>x.name);
+  let score=100; score-=Math.min(45,errorCount*5); if(diag.status==='ERRORS'&&errorCount===0)score-=45; if(failedChecks.length)score-=Math.min(45,failedChecks.length*20); if(!tests.tests.length&&!Object.keys(tests.scripts).length)score-=10; if(dep.concerns.some((x:any)=>x.severity==='warning'))score-=5; if(env.required.some((x:any)=>!x.present))score-=10; score=Math.max(0,score);
   const grade=score>=90?'A':score>=80?'B':score>=70?'C':score>=60?'D':'F';
-  const out={at:new Date().toISOString(),score,grade,diagnostics:{status:diag.status,errorCount,total:diag.count},tests:{files:tests.tests.length,scripts:Object.keys(tests.scripts).length},api:{clients:api.clients.length,routes:api.routes.length},database:{sqlFiles:db.sqlFiles.length,supabaseFiles:db.supabaseFiles.length},environment:{required:env.required.length,missing:env.required.filter((x:any)=>!x.present).map((x:any)=>x.name)},dependencies:dep,git:{success:git.success,code:git.code??0,status:git.stdout||git.stderr||""}};
+  const out={at:new Date().toISOString(),score,grade,diagnostics:{status:diag.status,errorCount,total:diag.count,failedChecks},tests:{files:tests.tests.length,scripts:Object.keys(tests.scripts).length},api:{clients:api.clients.length,routes:api.routes.length},database:{sqlFiles:db.sqlFiles.length,supabaseFiles:db.supabaseFiles.length},environment:{required:env.required.length,missing:env.required.filter((x:any)=>!x.present).map((x:any)=>x.name)},dependencies:dep,git:{success:git.success,code:git.code??0,status:git.stdout||git.stderr||""}};
   await v60WriteJson(V90_HEALTH_FILE,out); return out;
 }
 
@@ -1070,7 +1076,7 @@ async function v90ReleaseCenter(){
   const health=await v90Health();
   const files=['v8-editor-state.json','v9-project-health.json','v3-release-gate.json','v31-release-gate.json','v70-visual-gate.json'].filter(Boolean);
   const evidence:any={}; for(const f of files){const v=await v60ReadJson(f,null); if(v)evidence[f]=v;}
-  const blockers:any[]=[]; if(health.score<80)blockers.push({type:'health',score:health.score}); if(health.diagnostics.errorCount)blockers.push({type:'diagnostics',count:health.diagnostics.errorCount});
+  const blockers:any[]=[]; if(health.score<80)blockers.push({type:'health',score:health.score}); if(health.diagnostics.status==='ERRORS')blockers.push({type:'diagnostics',count:health.diagnostics.errorCount,failedChecks:health.diagnostics.failedChecks});
   const out={at:new Date().toISOString(),decision:blockers.length?'BLOCKED':'READY_FOR_FINAL_RELEASE',blockers,health,evidenceFiles:Object.keys(evidence)}; await v60WriteJson(V90_RELEASE_FILE,out); return out;
 }
 
@@ -3635,11 +3641,13 @@ const server = new McpServer({
     readPackageJson,
     detectPackageManager,
     isTextFile,
+    isSensitiveProjectPath,
     executeProgram,
     runPackageScript,
     recordChangedFile,
     recordCommandEvidence
   });
+  registerSkillComplianceTools(server, result, errorResult);
 
   registerPrecisionExecutionTools(server, {
     result,

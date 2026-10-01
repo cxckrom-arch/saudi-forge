@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { lstatSync } from "node:fs";
 import path from "node:path";
 
 export const MAX_FILE_SIZE = 1024 * 1024;
@@ -39,6 +40,18 @@ export const TEXT_EXTENSIONS = new Set([
   ".env.example"
 ]);
 
+const PROTECTED_ROOT_NAMES = new Set([".krom-secrets"]);
+const PROTECTED_EXTENSIONS = new Set([".pem", ".key", ".p12", ".pfx"]);
+
+export function isSensitiveProjectPath(input: string) {
+  const normalized = input.replaceAll("\\", "/").replace(/^\.\//, "");
+  const segments = normalized.split("/").filter(Boolean);
+  const base = segments.at(-1)?.toLowerCase() ?? "";
+  return PROTECTED_ROOT_NAMES.has(segments[0] ?? "") ||
+    (base.startsWith(".env") && base !== ".env.example") ||
+    PROTECTED_EXTENSIONS.has(path.extname(base));
+}
+
 export function createProjectContext(projectRoot: string) {
   const root = path.resolve(projectRoot);
 
@@ -46,6 +59,19 @@ export function createProjectContext(projectRoot: string) {
     const resolved = path.resolve(root, input);
     if (resolved !== root && !resolved.startsWith(root + path.sep)) {
       throw new Error(`Access outside KROM_PROJECT_ROOT is blocked: ${input}`);
+    }
+    const relative = path.relative(root, resolved);
+    let cursor = root;
+    for (const segment of relative ? relative.split(path.sep) : []) {
+      cursor = path.join(cursor, segment);
+      try {
+        if (lstatSync(cursor).isSymbolicLink()) {
+          throw new Error(`Symbolic-link paths are blocked inside KROM_PROJECT_ROOT: ${input}`);
+        }
+      } catch (error: any) {
+        if (error?.code === "ENOENT") continue;
+        throw error;
+      }
     }
     return resolved;
   }
@@ -111,5 +137,5 @@ export function createProjectContext(projectRoot: string) {
     return "npm";
   }
 
-  return { root, safePath, exists, backupFile, isTextFile, walkProject, readPackageJson, detectPackageManager };
+  return { root, safePath, exists, backupFile, isTextFile, walkProject, readPackageJson, detectPackageManager, isSensitiveProjectPath };
 }
