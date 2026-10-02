@@ -17,12 +17,12 @@ $env:PORT = "$Port"
 
 if (-not $SkipBootstrap -and ((-not (Test-Path '.\package.json')) -or (-not (Test-Path '.\node_modules')))) {
     Write-Host "[KSA] Runtime is incomplete. Running bootstrap..."
-    & (Join-Path $PSScriptRoot 'BOOTSTRAP-KROM-FORGE.ps1') -KromHome $env:KROM_HOME -ProjectRoot $env:KROM_PROJECT_ROOT -Port $Port -InstallDependencies
+    & (Join-Path $PSScriptRoot 'BOOTSTRAP-SAUDI-FORGE.ps1') -KromHome $env:KROM_HOME -ProjectRoot $env:KROM_PROJECT_ROOT -Port $Port -InstallDependencies
 }
 
 $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if ($conn) {
-    throw "Port $Port is already in use by PID $($conn[0].OwningProcess). Choose another port: .\START-KROM-FORGE.ps1 -Port 3002"
+    throw "Port $Port is already in use by PID $($conn[0].OwningProcess). Choose another port: .\START-SAUDI-FORGE.ps1 -Port 3002"
 }
 
 Write-Host "KROM_HOME         = $env:KROM_HOME"

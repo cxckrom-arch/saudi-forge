@@ -1,4 +1,4 @@
-# KSA FORGE DEV v50
+# SAUDI FORGE v50
 
 Local-first MCP developer platform with an integrated IDE surface, project inspection tools, automation runtime, model-provider routing, diagnostics, and verification gates.
 
@@ -108,7 +108,7 @@ The V37 modularization has started with:
 
 ## V46 reliability upgrade
 
-Developer chat now uses bounded smart failover. The highest-ranked healthy provider is tried first; on request failure, KSA Forge can move through up to two additional healthy routed candidates. Attempt metadata is retained for diagnostics without persisting credentials.
+Developer chat now uses bounded smart failover. The highest-ranked healthy provider is tried first; on request failure, Saudi Forge can move through up to two additional healthy routed candidates. Attempt metadata is retained for diagnostics without persisting credentials.
 
 ## V47 provider resilience
 
@@ -116,11 +116,11 @@ Developer chat now includes a per-provider circuit breaker on top of V46 Smart F
 
 ## V48 provider recovery
 
-Developer chat now uses a half-open recovery phase after a provider circuit cooldown. When the cooldown expires, KSA Forge performs a provider health probe before allowing the provider back into the request path. A passing probe closes the circuit and restores the provider; a failed probe reopens the circuit for another cooldown window.
+Developer chat now uses a half-open recovery phase after a provider circuit cooldown. When the cooldown expires, Saudi Forge performs a provider health probe before allowing the provider back into the request path. A passing probe closes the circuit and restores the provider; a failed probe reopens the circuit for another cooldown window.
 
 ## V49 provider reliability ledger
 
-Provider resilience telemetry is now persisted to disk instead of existing only in process memory. KSA Forge records request success/failure, failover usage, circuit opens/skips, and recovery-probe results. The Developer Platform status exposes aggregate success rate, latency, failure counts, failovers, circuit opens, and recoveries per provider.
+Provider resilience telemetry is now persisted to disk instead of existing only in process memory. Saudi Forge records request success/failure, failover usage, circuit opens/skips, and recovery-probe results. The Developer Platform status exposes aggregate success rate, latency, failure counts, failovers, circuit opens, and recoveries per provider.
 
 ## V50 reliability-aware routing
 

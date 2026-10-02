@@ -816,7 +816,7 @@ async function v50TaskBoard(){
 
 
 // =========================================================
-// KROM FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
+// SAUDI FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
 // =========================================================
 const V60_DIAGNOSTICS_FILE = "v6-diagnostics.json";
 const V60_WORKSPACE_FILE = "v6-workspace.json";
@@ -887,7 +887,7 @@ async function v60ExecutionStream(){
 
 
 // =========================================================
-// KROM FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
+// SAUDI FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
 // =========================================================
 const V70_LAYOUT_FILE = "v7-layout.json";
 const V70_THEME_FILE = "v7-theme.json";
@@ -924,12 +924,12 @@ async function v70WorkspaceState(){
 
 function v70Html(){return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${APP_NAME} ${APP_DISPLAY_VERSION}</title><style>
 :root{color-scheme:dark;--bg:#0b0d10;--panel:#11151a;--line:#242a31;--muted:#8d98a5;--text:#edf2f7;--accent:#4f8cff;--danger:#ff6b6b;--ok:#42c98b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:13px Inter,Segoe UI,Arial,sans-serif;height:100vh;overflow:hidden}.app{height:100vh;display:grid;grid-template-rows:42px 1fr 22px}.top{display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--line);background:#0f1216}.brand{font-weight:700}.pill{border:1px solid var(--line);background:#151a20;border-radius:8px;padding:5px 8px;color:var(--muted)}.grid{display:grid;grid-template-columns:250px 1fr 310px;min-height:0}.panel{background:var(--panel);border-right:1px solid var(--line);min-width:0;overflow:auto}.right{border-left:1px solid var(--line);border-right:0}.title{position:sticky;top:0;background:#11151a;padding:10px 12px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.item{padding:7px 10px;border-bottom:1px solid #171c22;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.main{display:grid;grid-template-rows:1fr 230px;min-width:0}.editor{display:grid;grid-template-columns:1fr 1fr;min-height:0}.pane{border-right:1px solid var(--line);overflow:auto}.empty{height:100%;display:grid;place-items:center;color:var(--muted)}.bottom{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);min-height:0}.status{display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:#0f1216;color:var(--muted);border-top:1px solid var(--line);font-size:11px}.err{color:var(--danger)}.ok{color:var(--ok)}.btn{cursor:pointer;border:1px solid var(--line);background:#151a20;color:var(--text);padding:6px 9px;border-radius:7px}.btn:hover{border-color:#3b4652}.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);background:#0f1216}.tab{padding:9px 12px;color:var(--muted)}.tab.active{color:var(--text);border-bottom:2px solid var(--accent)}pre{margin:0;padding:12px;white-space:pre-wrap;font:12px ui-monospace,SFMono-Regular,Consolas,monospace}.metric{display:flex;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #171c22}.dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--ok);margin-right:6px}@media(max-width:900px){.grid{grid-template-columns:210px 1fr}.right{display:none}.editor{grid-template-columns:1fr}.editor .pane:nth-child(2){display:none}}
-</style><script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script></head><body><div class="app"><div class="top"><div class="brand">KROM FORGE DEV <span style="color:var(--accent)">v7.0</span></div><button class="btn" onclick="load()">Refresh</button><span class="pill" id="project">Loading…</span><span class="pill" id="selector">Agent/Model</span></div><div class="grid"><aside class="panel"><div class="title">Explorer</div><div id="files"></div></aside><main class="main"><section class="editor"><div class="pane"><div class="tabs"><div class="tab active">Editor</div><div class="tab">Diff</div></div><div class="empty">Select a file through MCP tools to inspect/edit safely.</div></div><div class="pane"><div class="tabs"><div class="tab active">Preview</div><div class="tab">Browser</div></div><div id="preview" class="empty">Preview session idle</div></div></section><section class="bottom"><div class="pane"><div class="title">Problems</div><div id="problems"></div></div><div class="pane"><div class="title">Execution Stream</div><div id="exec"></div></div></section></main><aside class="panel right"><div class="title">Tasks</div><div id="tasks"></div><div class="title">Git</div><pre id="git"></pre></aside></div><div class="status"><span id="status">Ready</span><span>KROM Visual IDE · read-only browser shell backed by MCP workspace state</span></div></div><script>
+</style><script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script></head><body><div class="app"><div class="top"><div class="brand">SAUDI FORGE DEV <span style="color:var(--accent)">v7.0</span></div><button class="btn" onclick="load()">Refresh</button><span class="pill" id="project">Loading…</span><span class="pill" id="selector">Agent/Model</span></div><div class="grid"><aside class="panel"><div class="title">Explorer</div><div id="files"></div></aside><main class="main"><section class="editor"><div class="pane"><div class="tabs"><div class="tab active">Editor</div><div class="tab">Diff</div></div><div class="empty">Select a file through MCP tools to inspect/edit safely.</div></div><div class="pane"><div class="tabs"><div class="tab active">Preview</div><div class="tab">Browser</div></div><div id="preview" class="empty">Preview session idle</div></div></section><section class="bottom"><div class="pane"><div class="title">Problems</div><div id="problems"></div></div><div class="pane"><div class="title">Execution Stream</div><div id="exec"></div></div></section></main><aside class="panel right"><div class="title">Tasks</div><div id="tasks"></div><div class="title">Git</div><pre id="git"></pre></aside></div><div class="status"><span id="status">Ready</span><span>KROM Visual IDE · read-only browser shell backed by MCP workspace state</span></div></div><script>
 function e(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}async function load(){document.getElementById('status').textContent='Refreshing…';try{const r=await fetch('/ide/api/state');const d=await r.json();document.getElementById('project').textContent=d.project||'';document.getElementById('selector').textContent=(d.selector?.agent||'adaptive')+' · '+(d.selector?.model||'auto');document.getElementById('files').innerHTML=(d.files?.items||[]).slice(0,120).map(x=>'<div class="item" title="'+e(x.file)+'">'+e(x.file)+'</div>').join('');document.getElementById('problems').innerHTML=(d.diagnostics?.items||[]).slice(0,80).map(x=>'<div class="item err">'+e(x.file)+':'+e(x.line)+':'+e(x.column)+' · '+e(x.message)+'</div>').join('')||'<div class="item ok">No parsed problems</div>';document.getElementById('exec').innerHTML=(d.execution||[]).slice(-80).map(x=>'<div class="item">'+e(x.kind)+' · '+e(x.title||x.phase||x.status||x.id||'')+' · '+e(x.status||'')+'</div>').join('');document.getElementById('tasks').innerHTML=(d.tasks?.nodes||[]).slice(0,80).map(x=>'<div class="item">'+e(x.id)+' · '+e(x.title)+' · '+e(x.status)+'</div>').join('')||'<div class="item">No active tasks</div>';document.getElementById('git').textContent=d.git?.status||'Clean / unavailable';document.getElementById('preview').textContent=d.preview?.url?('Preview: '+d.preview.url):'Preview session idle';document.getElementById('status').textContent='Workspace refreshed';}catch(err){document.getElementById('status').textContent='Failed to load workspace';}}load();setInterval(load,15000)</script></body></html>`}
 
 
 // =========================================================
-// KROM FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
+// SAUDI FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
 // =========================================================
 const V80_EDITOR_STATE_FILE = "v8-editor-state.json";
 const V80_EDIT_HISTORY_FILE = "v8-edit-history.json";
@@ -994,7 +994,7 @@ let state=null,active=null,tabs=[],MONACO=null;const E=document.getElementById('
 
 
 // =========================================================
-// KROM FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
+// SAUDI FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
 // =========================================================
 const V90_PROFILE_FILE = "v9-workspace-profile.json";
 const V90_RELEASE_FILE = "v9-release-center.json";
@@ -1085,7 +1085,7 @@ async function v90ReleaseCenter(){
 
 
 // ========================================
-// KROM FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
+// SAUDI FORGE DEV CORE - AUTONOMOUS SOFTWARE FACTORY
 // ========================================
 const V100_SPEC_FILE = "v10-spec-pipeline.json";
 const V100_ARCH_FILE = "v10-architecture-graph.json";
@@ -1212,7 +1212,7 @@ async function v100FactoryStatus(){
 
 
 // ========================================
-// KROM FORGE DEV v11.0 - AUTONOMOUS DELIVERY & RELIABILITY PLATFORM
+// SAUDI FORGE DEV v11.0 - AUTONOMOUS DELIVERY & RELIABILITY PLATFORM
 // ========================================
 const V110_OBSERVABILITY_FILE = "v11-observability.json";
 const V110_REPLAY_FILE = "v11-failure-replay.json";
@@ -3343,7 +3343,7 @@ async function v310RuntimeDoctor(){
     {name:'krom_home_exists',ok:await exists(KROM_HOME),detail:KROM_HOME},
     {name:'project_root_exists',ok:await exists(PROJECT_ROOT),detail:PROJECT_ROOT},
     {name:'server_ts',ok:await exists(path.join(KROM_HOME,'server.ts')),detail:'server.ts'},
-    {name:'start_script',ok:await exists(path.join(KROM_HOME,'START-KROM-FORGE.ps1')),detail:'START-KROM-FORGE.ps1'},
+    {name:'start_script',ok:await exists(path.join(KROM_HOME,'START-SAUDI-FORGE.ps1')),detail:'START-SAUDI-FORGE.ps1'},
     {name:'package_json',ok:await exists(path.join(KROM_HOME,'package.json')),detail:'package.json'},
     {name:'node',ok:node.ok,detail:node.stdout||node.stderr},
     {name:'npm',ok:npm.ok,detail:npm.stdout||npm.stderr},
@@ -3392,7 +3392,7 @@ async function v310RepairPlan(){
   const doctor=await v310RuntimeDoctor();
   const actions:any[]=[];
   for(const b of doctor.blockers||[]){
-    if(b==='package_json') actions.push({id:'create-package',action:'Create package.json using BOOTSTRAP-KROM-FORGE.ps1',risk:'LOW'});
+    if(b==='package_json') actions.push({id:'create-package',action:'Create package.json using BOOTSTRAP-SAUDI-FORGE.ps1',risk:'LOW'});
     else if(b==='node') actions.push({id:'install-node',action:'Install Node.js 20+ and reopen PowerShell',risk:'MANUAL'});
     else if(b==='npm') actions.push({id:'repair-npm',action:'Repair Node/npm installation',risk:'MANUAL'});
     else actions.push({id:`repair-${b}`,action:`Repair missing requirement: ${b}`,risk:'LOW'});
@@ -3404,7 +3404,7 @@ async function v310StartupIntegrityGate(){
   const port=await v310PortDiagnostics({port:PORT});
   const blockers=[...(doctor.blockers||[])];
   if(port.occupied) blockers.push(`port_${PORT}_already_in_use`);
-  return v310Write('startup-gate.json',{version:'31.0.0',status:blockers.length?'BLOCKED':'PASS',blockers,checks:{runtime:doctor.status,port:port.status},next:blockers.length?'Run BOOTSTRAP-KROM-FORGE.ps1 or choose another PORT':'Run START-KROM-FORGE.ps1'});
+  return v310Write('startup-gate.json',{version:'31.0.0',status:blockers.length?'BLOCKED':'PASS',blockers,checks:{runtime:doctor.status,port:port.status},next:blockers.length?'Run BOOTSTRAP-SAUDI-FORGE.ps1 or choose another PORT':'Run START-SAUDI-FORGE.ps1'});
 }
 async function v310InstallStatus(){
   await v310Ensure();

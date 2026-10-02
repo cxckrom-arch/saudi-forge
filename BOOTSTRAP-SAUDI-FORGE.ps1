@@ -34,7 +34,7 @@ Write-Host "[PASS] npm  $npmVersion"
 if (-not (Test-Path ".\package.json")) {
 @'
 {
-  "name": "ksa-forge-dev",
+  "name": "saudi-forge",
   "version": "32.0.0",
   "private": true,
   "type": "module",
@@ -98,4 +98,4 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "Bootstrap complete. Start with:"
-Write-Host "  .\START-KROM-FORGE.ps1"
+Write-Host "  .\START-SAUDI-FORGE.ps1"

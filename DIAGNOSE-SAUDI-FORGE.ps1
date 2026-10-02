@@ -1,6 +1,6 @@
 param([int]$Port = 3001)
 $ErrorActionPreference = "Continue"
-$kromHome = if ($env:KROM_HOME) { $env:KROM_HOME } else { "C:\KROM-FORGE" }
+$kromHome = if ($env:KROM_HOME) { $env:KROM_HOME } else { "C:\SAUDI-FORGE" }
 $project = if ($env:KROM_PROJECT_ROOT) { $env:KROM_PROJECT_ROOT } else { $kromHome }
 Write-Host "KROM_HOME         : $kromHome"
 Write-Host "KROM_PROJECT_ROOT : $project"

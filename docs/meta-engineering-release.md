@@ -1,8 +1,8 @@
-# KROM Forge Meta Engineering Release
+# Saudi Forge Meta Engineering Release
 
 **Date:** 2026-10-02
 **Registry:** `2026.10`
-**Scope:** KROM Forge component only; no KSA Safety Board application files were changed.
+**Scope:** Saudi Forge component only; no KSA Safety Board application files were changed.
 
 ## Delivered
 

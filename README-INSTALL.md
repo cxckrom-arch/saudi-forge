@@ -14,7 +14,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 Get-ChildItem "C:\KSA-FORGE" -Recurse -File | Unblock-File
 npm install
 npm run typecheck
-.\START-KROM-FORGE.ps1
+.\START-SAUDI-FORGE.ps1
 ```
 
 Open `http://127.0.0.1:3001/ide`. The AI Control Center is embedded in the IDE.
@@ -27,20 +27,20 @@ Canonical Windows path: `C:\KSA-FORGE`
 
 ```powershell
 cd C:\KSA-FORGE
-.\BOOTSTRAP-KROM-FORGE.ps1 -InstallDependencies
-.\START-KROM-FORGE.ps1
+.\BOOTSTRAP-SAUDI-FORGE.ps1 -InstallDependencies
+.\START-SAUDI-FORGE.ps1
 ```
 
 Diagnostics:
 
 ```powershell
-.\DIAGNOSE-KROM-FORGE.ps1
+.\DIAGNOSE-SAUDI-FORGE.ps1
 ```
 
 Use another project without moving KSA Forge:
 
 ```powershell
-.\START-KROM-FORGE.ps1 -ProjectRoot "C:\PATH\TO\PROJECT"
+.\START-SAUDI-FORGE.ps1 -ProjectRoot "C:\PATH\TO\PROJECT"
 ```
 
 IDE: `http://127.0.0.1:3001/ide`  
@@ -48,11 +48,11 @@ MCP: `http://127.0.0.1:3001/mcp`
 
 ---
 
-# KROM FORGE DEV v27.0
+# SAUDI FORGE DEV v27.0
 
 Current layer: Autonomous Full-Stack Feature Factory.
 
-## KROM FORGE DEV v21.0
+## SAUDI FORGE DEV v21.0
 
 Includes Autonomous Verification & Release Intelligence.
 
@@ -60,11 +60,11 @@ Includes Autonomous Verification & Release Intelligence.
 
 This package contains exactly 1000 registered MCP tools at runtime (500 prior + 500 v14).
 
-# KROM FORGE DEV v13.0 — 500 Tools
+# SAUDI FORGE DEV v13.0 — 500 Tools
 
 This package contains exactly **500 unique MCP tools**.
 
-# KROM FORGE TITAN v4
+# SAUDI FORGE TITAN v4
 
 ## New MCP tools
 
@@ -96,9 +96,9 @@ The installer backs up the current KROM configuration and automatically restores
 ## Start
 
 ```powershell
-cd C:\KROM-FORGE
-$env:KROM_PROJECT_ROOT="C:\KROM-FORGE"
-$env:KROM_HOME="C:\KROM-FORGE"
+cd C:\SAUDI-FORGE
+$env:KROM_PROJECT_ROOT="C:\SAUDI-FORGE"
+$env:KROM_HOME="C:\SAUDI-FORGE"
 $env:PORT="3001"
 npm run dev
 ```
@@ -118,7 +118,7 @@ npm run dev
 
 ## Prompt Studio v2.2
 
-KROM FORGE DEV now includes a dedicated prompt-engineering toolset:
+SAUDI FORGE DEV now includes a dedicated prompt-engineering toolset:
 
 - `build_prompt` — create a structured professional software prompt.
 - `improve_prompt` — upgrade a rough prompt without dropping original requirements.
@@ -242,7 +242,7 @@ New v5 tools:
 - engineering_task_board_v5
 - engineering_suite_gate_v5
 
-See `KROM-FORGE-DEV-v5.0.md`.
+See `SAUDI-FORGE-DEV-v5.0.md`.
 
 
 ## v6.0 Developer IDE Core
@@ -263,7 +263,7 @@ The Visual IDE reads real workspace state from `/ide/api/state`. Code mutation r
 
 ## v8.0 Full AI Coding Workbench
 
-After starting KROM FORGE DEV, open:
+After starting SAUDI FORGE DEV, open:
 
 ```text
 http://127.0.0.1:<PORT>/ide
@@ -314,7 +314,7 @@ Recommended final sequence:
 
 ## v12.0 MEGA 100 Expansion
 
-Use `mega_100_status_v12` to confirm the layer is available. Run `mega_100_audit_v12` for a complete static engineering audit or pass selected categories for a focused review. Individual capability tools are listed in `KROM-FORGE-DEV-v12.0.md`. Reports are stored under `.krom/v12-batches/`.
+Use `mega_100_status_v12` to confirm the layer is available. Run `mega_100_audit_v12` for a complete static engineering audit or pass selected categories for a focused review. Individual capability tools are listed in `SAUDI-FORGE-DEV-v12.0.md`. Reports are stored under `.krom/v12-batches/`.
 
 ## v15.0 — 5000-tool registry
 This build adds 4000 generated MCP capabilities on top of the 1000-tool v14 baseline.
@@ -327,18 +327,18 @@ Use `router_status_v16` first, then `intelligent_tool_router_v16` or `execution_
 
 
 ## v17.0 Adaptive Workflow Compiler
-See `KROM-FORGE-DEV-v17.0.md`.
+See `SAUDI-FORGE-DEV-v17.0.md`.
 
 ## v18.0 Verified Autonomous Executor
 v18 adds receipt-backed execution and false-PASS protection. For long tasks, start with `verified_execution_start_v18`, record every step through `execution_receipt_v18`, and finish only after `verified_release_gate_v18` returns PASS.
 
 
 ## v20.0 add-on
-Self-Healing Architecture & Migration Engine is included. See KROM-FORGE-DEV-v20.0.md.
+Self-Healing Architecture & Migration Engine is included. See SAUDI-FORGE-DEV-v20.0.md.
 
 ## v22 Quality Governance
 
-After starting KROM FORGE DEV, initialize governance once with `quality_policy_init_v22`, then use `governance_gate_v22` before a governed release decision. Set `KROM_CHANGE_FREEZE=true` to block high/critical changes during a freeze window.
+After starting SAUDI FORGE DEV, initialize governance once with `quality_policy_init_v22`, then use `governance_gate_v22` before a governed release decision. Set `KROM_CHANGE_FREEZE=true` to block high/critical changes during a freeze window.
 
 ## v23.0 Architecture Evolution
 
@@ -347,17 +347,17 @@ Use `architecture_evolution_decision_v23` only after reviewing the v22 governanc
 
 ## Default Windows location
 
-This build is configured for `C:\KROM-FORGE`. `START-KROM-FORGE.ps1` sets `KROM_HOME` to that path and uses it as `KROM_PROJECT_ROOT` unless you already supplied a different `KROM_PROJECT_ROOT`. The launcher falls back to its own extracted folder if `C:\KROM-FORGE` does not exist.
+This build is configured for `C:\SAUDI-FORGE`. `START-SAUDI-FORGE.ps1` sets `KROM_HOME` to that path and uses it as `KROM_PROJECT_ROOT` unless you already supplied a different `KROM_PROJECT_ROOT`. The launcher falls back to its own extracted folder if `C:\SAUDI-FORGE` does not exist.
 
 To target another repository for the current PowerShell session:
 
 ```powershell
 .\SET-KROM-PROJECT.ps1 -ProjectPath "C:\path\to\project"
-.\START-KROM-FORGE.ps1
+.\START-SAUDI-FORGE.ps1
 ```
 
 ## v32 Model & Provider Orchestrator
-Provider configuration is stored under `C:\KROM-FORGE\.krom\v32-providers`. API key values are never stored in provider profiles; configure only the environment-variable name. Default local endpoints are Ollama `http://127.0.0.1:11434` and GPT4All `http://127.0.0.1:4891`.
+Provider configuration is stored under `C:\SAUDI-FORGE\.krom\v32-providers`. API key values are never stored in provider profiles; configure only the environment-variable name. Default local endpoints are Ollama `http://127.0.0.1:11434` and GPT4All `http://127.0.0.1:4891`.
 
 
 ## v33 Adaptive Multi-Model Intelligence
