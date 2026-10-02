@@ -3,36 +3,446 @@
   "name": "KROM Forge KSA Safety Board skill pack",
   "coreCount": 12,
   "additionalCount": 12,
-  "registeredCount": 24,
-  "selectionRule": "Keep the twelve tested core skills stable and load additional specialist SKILL.md files only when their responsibility and trigger match the task. Do not duplicate responsibilities or replace the Master Orchestrator.",
+  "registeredCount": 36,
+  "selectionRule": "Use the current versioned registry for compliance. Historical core and additional counts are informational only; growth beyond twelve is valid.",
   "skills": [
-    { "id": "ksa-safety-board-engineering", "class": "core" },
-    { "id": "ksa-safety-board-uiux-design", "class": "core" },
-    { "id": "ksa-esp-vision-systems-engineer", "class": "core" },
-    { "id": "ksa-vision-command-center-uiux", "class": "core" },
-    { "id": "ksa-vision-reliability-security-auditor", "class": "core" },
-    { "id": "ksa-safety-board-print-document-architect", "class": "core" },
-    { "id": "ksa-safety-board-dashboard-analytics", "class": "core" },
-    { "id": "ksa-safety-board-hse-automation-workflow", "class": "core" },
-    { "id": "ksa-safety-board-orchestrator-v3", "class": "core" },
-    { "id": "enterprise-hse-platform-engineer", "class": "core" },
-    { "id": "elite-product-uiux-designer", "class": "core" },
-    { "id": "production-engineering-release-guardian", "class": "core" },
-    { "id": "ksa-database-schema-migration-architect", "class": "additional" },
-    { "id": "ksa-auth-rbac-rls-security-engineer", "class": "additional" },
-    { "id": "ksa-integration-notification-engineer", "class": "additional" },
-    { "id": "ksa-realtime-collaboration-engineer", "class": "additional" },
-    { "id": "ksa-mobile-pwa-offline-field-engineer", "class": "additional" },
-    { "id": "ksa-qa-e2e-test-automation-engineer", "class": "additional" },
-    { "id": "ksa-performance-observability-sre-engineer", "class": "additional" },
-    { "id": "ksa-backup-restore-disaster-recovery-engineer", "class": "additional" },
-    { "id": "ksa-document-intelligence-ocr-import-engineer", "class": "additional" },
-    { "id": "ksa-ai-hse-assistant-rag-engineer", "class": "additional" },
-    { "id": "ksa-accessibility-rtl-i18n-engineer", "class": "additional" },
-    { "id": "ksa-data-exchange-etl-reporting-engineer", "class": "additional" }
+    {
+      "id": "ksa-safety-board-engineering",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-engineering",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-safety-board-uiux-design",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-uiux-design",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-esp-vision-systems-engineer",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-esp-vision-systems-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-vision-command-center-uiux",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-vision-command-center-uiux",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-vision-reliability-security-auditor",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-vision-reliability-security-auditor",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-safety-board-print-document-architect",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-print-document-architect",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-safety-board-dashboard-analytics",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-dashboard-analytics",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-safety-board-hse-automation-workflow",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-hse-automation-workflow",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-safety-board-orchestrator-v3",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-safety-board-orchestrator-v3",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "enterprise-hse-platform-engineer",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "enterprise-hse-platform-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "elite-product-uiux-designer",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "elite-product-uiux-designer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "production-engineering-release-guardian",
+      "class": "core",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "production-engineering-release-guardian",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-database-schema-migration-architect",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-database-schema-migration-architect",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-auth-rbac-rls-security-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-auth-rbac-rls-security-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-integration-notification-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-integration-notification-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-realtime-collaboration-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-realtime-collaboration-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-mobile-pwa-offline-field-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-mobile-pwa-offline-field-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-qa-e2e-test-automation-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-qa-e2e-test-automation-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-performance-observability-sre-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-performance-observability-sre-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-backup-restore-disaster-recovery-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-backup-restore-disaster-recovery-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-document-intelligence-ocr-import-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-document-intelligence-ocr-import-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-ai-hse-assistant-rag-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-ai-hse-assistant-rag-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-accessibility-rtl-i18n-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-accessibility-rtl-i18n-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "ksa-data-exchange-etl-reporting-engineer",
+      "class": "additional",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "ksa-data-exchange-etl-reporting-engineer",
+      "dependencies": [],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-skill-factory-meta-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-skill-factory-meta-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-skill-discovery-curation-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-skill-discovery-curation-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-skill-supply-chain-security-auditor",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-skill-supply-chain-security-auditor",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "high"
+    },
+    {
+      "id": "krom-appsec-threat-model-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-appsec-threat-model-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-secure-code-auditor",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-secure-code-auditor",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-secrets-credential-guardian",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-secrets-credential-guardian",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "high"
+    },
+    {
+      "id": "krom-mcp-contract-security-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-mcp-contract-security-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "high"
+    },
+    {
+      "id": "krom-autonomous-repair-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-autonomous-repair-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "high"
+    },
+    {
+      "id": "krom-self-evolution-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-self-evolution-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-prompt-skill-evaluation-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-prompt-skill-evaluation-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-observability-reliability-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-observability-reliability-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "medium"
+    },
+    {
+      "id": "krom-sast-dast-dependency-security-engineer",
+      "class": "meta",
+      "version": "1.0.0",
+      "status": "ACTIVE",
+      "source": "local",
+      "canonical": true,
+      "ownerDomain": "krom-sast-dast-dependency-security-engineer",
+      "dependencies": [
+        "ksa-safety-board-orchestrator-v3",
+        "production-engineering-release-guardian"
+      ],
+      "securityLevel": "high"
+    }
   ],
   "optionalNotRegistered": [
     "ksa-computer-vision-safety-engineer",
     "ksa-safety-board-orchestrator"
-  ]
+  ],
+  "registryVersion": "2026.10",
+  "metaCount": 12
 }

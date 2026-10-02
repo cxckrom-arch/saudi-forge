@@ -33,10 +33,9 @@ try{
  const invalid=await rpc('tools/call',{name:'search_code',arguments:{query:42}});events.push({name:'invalid-MCP-input',status:invalid.status,isError:invalid.data.result?.isError,protocolError:invalid.data.error?.code});
  const first=await json('/ide/api/dev/chat','POST',{message:'My fixture project is Atlas.'});const second=await json('/ide/api/dev/chat','POST',{message:'What did I call the project?'});
  events.push({name:'mock-provider-chat',first:first.status,second:second.status,requests:conversations.length,historyIncluded:conversations[1]?.some(m=>m.role==='user'&&m.content==='My fixture project is Atlas.')});
- const html=await(await fetch(base+'/ide')).text();events.push({name:'inline-filename-handler',containsUnsafeInlineHandler:html.includes('onclick="openFile('),filenameCreated:true});
+ const html=await(await fetch(base+'/ide')).text();const unsafeInlineHandler=html.includes('onclick="openFile(');events.push({name:'inline-filename-handler',containsUnsafeInlineHandler:unsafeInlineHandler,filenameCreated:true});if(unsafeInlineHandler)throw Error('unsafe inline filename handler remains in /ide HTML');
  await fs.writeFile('reports/full-audit/http-results.json',JSON.stringify({base,fixture:temp,events},null,2));
  console.log(JSON.stringify({base,events},null,2));
  // Keep this isolated server available for browser confirmation; Ctrl+C stops it.
  const shutdown=()=>{server.kill();mock.close();};process.on('SIGINT',()=>{shutdown();process.exit(0)});process.on('SIGTERM',()=>{shutdown();process.exit(0)});
 }catch(e){server.kill();mock.close();throw e;}
-
