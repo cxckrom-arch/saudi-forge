@@ -170,6 +170,9 @@ test('network policy remains loopback-only unless an explicit public host is all
  assert.ok(extended.allowedHosts.includes('forge.example.test'));
  assert.ok(extended.allowedOrigins.includes('forge.example.test'));
  assert.equal(extended.host,'127.0.0.1');
+ const multiple=createNetworkPolicy('one.example.test, two.example.test');
+ assert.ok(multiple.allowedHosts.includes('one.example.test'));
+ assert.ok(multiple.allowedHosts.includes('two.example.test'));
 });
 
 

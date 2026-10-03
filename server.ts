@@ -4276,7 +4276,12 @@ const handler = createMcpHandler(
 
 const nodeHandler = toNodeHandler(handler);
 
-const networkPolicy = createNetworkPolicy(process.env.KROM_PUBLIC_HOST || "");
+const networkPolicy = createNetworkPolicy([
+  process.env.KROM_PUBLIC_HOST,
+  process.env.VERCEL_URL,
+  process.env.VERCEL_BRANCH_URL,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL
+].filter(Boolean).join(","));
 
 export const app = createMcpFastifyApp(networkPolicy);
 
