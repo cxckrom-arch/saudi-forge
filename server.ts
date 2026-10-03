@@ -90,8 +90,12 @@ const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 3001);
 const DEFAULT_KROM_HOME = process.platform === "win32" ? "C:\\KSA-FORGE" : process.cwd();
-const KROM_HOME = path.resolve(process.env.KROM_HOME || DEFAULT_KROM_HOME);
-const PROJECT_ROOT = path.resolve(process.env.KROM_PROJECT_ROOT || KROM_HOME);
+const KROM_HOME = process.env.VERCEL
+  ? path.join("/tmp", "saudi-forge")
+  : path.resolve(process.env.KROM_HOME || DEFAULT_KROM_HOME);
+const PROJECT_ROOT = path.resolve(
+  process.env.KROM_PROJECT_ROOT || (process.env.VERCEL ? process.cwd() : KROM_HOME)
+);
 const AUTOMATION_STATE_DIR = process.env.VERCEL
   ? path.join("/tmp", "saudi-forge", ".krom", "automation")
   : path.join(PROJECT_ROOT, ".krom", "automation");
