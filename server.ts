@@ -175,9 +175,10 @@ type KromProjectMemory = {
 
 const KROM_STATE_DIR = ".krom";
 const PROJECT_MEMORY_FILE = "project-memory.json";
-
 async function kromStatePath(file: string) {
-  const dir = safePath(KROM_STATE_DIR);
+  const dir = process.env.VERCEL
+    ? path.join(KROM_HOME, KROM_STATE_DIR)
+    : safePath(KROM_STATE_DIR);
   await fs.mkdir(dir, { recursive: true });
   return path.join(dir, file);
 }
