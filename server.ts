@@ -4275,7 +4275,7 @@ const nodeHandler = toNodeHandler(handler);
 
 const networkPolicy = createNetworkPolicy(process.env.KROM_PUBLIC_HOST || "");
 
-const app = createMcpFastifyApp(networkPolicy);
+export const app = createMcpFastifyApp(networkPolicy);
 
 app.all(
   "/mcp",
@@ -4322,13 +4322,14 @@ registerAiControlRoutes(app, {
 app.get('/ide/tools',async(_request,reply)=>reply.type('text/html; charset=utf-8').send(await fs.readFile(new URL('./public/tools.html',import.meta.url),'utf8')));
 registerAutomationHttpRoutes(app, toolRuntime);
 app.addHook('onClose',async()=>{toolRuntime.stopScheduler();await catalogServer.close();});
-await app.listen({
-  port: PORT,
-  host: LOOPBACK_HOST
-});
-
-console.log("");
-toolRuntime.startScheduler();
+if (!process.env.VERCEL) {
+  await app.listen({
+    port: PORT,
+    host: LOOPBACK_HOST
+  });
+  console.log("");
+  toolRuntime.startScheduler();
+}
 console.log(` ${APP_NAME} ${APP_DISPLAY_VERSION} - DEVELOPER PLATFORM · CHAT + PREVIEW`);
 console.log(" mega_100_status_v12");
 console.log(" mega_100_audit_v12");
