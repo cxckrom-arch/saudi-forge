@@ -92,7 +92,10 @@ const PORT = Number(process.env.PORT || 3001);
 const DEFAULT_KROM_HOME = process.platform === "win32" ? "C:\\KSA-FORGE" : process.cwd();
 const KROM_HOME = path.resolve(process.env.KROM_HOME || DEFAULT_KROM_HOME);
 const PROJECT_ROOT = path.resolve(process.env.KROM_PROJECT_ROOT || KROM_HOME);
-const toolRuntime = new ToolRuntime(path.join(PROJECT_ROOT,".krom","automation"));
+const AUTOMATION_STATE_DIR = process.env.VERCEL
+  ? path.join("/tmp", "saudi-forge", ".krom", "automation")
+  : path.join(PROJECT_ROOT, ".krom", "automation");
+const toolRuntime = new ToolRuntime(AUTOMATION_STATE_DIR);
 
 function result(text: string) {
   return {
